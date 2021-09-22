@@ -6,7 +6,7 @@
 				<i class="iconfont icon-xiangzuo2" @click="goOn"></i>
 			</van-col>
 			<van-col span="14">
-				<van-popover v-model:show="state.showPopover" trigger="manual">
+				<van-popover v-model:show="state.showPopover" trigger="manual" style='z-index: 2;'>
 					<search-result v-if="state.value" :search-text='state.value'></search-result>
 					<!-- <search-suggestion v-else-if="state.value" :search-text='value' @search="onSearch"></search-suggestion> -->
 					<div v-else>
@@ -28,8 +28,9 @@
 						background="transparent" 
 						placeholder="搜索"
 						@search="onSearch" 
-						@focus='onFocus'
-						@blur='onBlur' />
+						@click='onFocus'
+						style='z-index: 2;'
+						 />
 				  </template>
 		    </van-popover>
 		  </van-col>
@@ -38,6 +39,7 @@
 		  </van-col>
 	  </van-col>
 	</div>
+	<div class="cover" @click="onClose"></div>
 </template>
 
 <script>
@@ -99,10 +101,11 @@
 			}
 			//焦点聚焦搜索  展示弹出
 			const onFocus = () => {
+				init()
 				state.showPopover = true
 			}
-			//搜索失去焦点  关闭弹出
-			const onBlur = () => {
+			//点击遮罩  关闭弹出
+			const onClose = () => {
 				state.showPopover = false
 			}
 			//删除所有搜索历史 功能未完善
@@ -116,9 +119,6 @@
 				setItem('search-songs', state.searchHistories)
 			}
 			// 钩子函数
-			onMounted(() => {
-				init()
-			})
       //请求热搜榜
 			const init = () => {
 				_hotSearchDetail().then(res => {
@@ -146,7 +146,7 @@
 				state,
 				onSearch,
 				onFocus,
-				onBlur,
+				onClose,
 				goBack,
 				goOn,
 				onDeleteAll,
@@ -169,5 +169,12 @@
 			}
 			
 		}
-	
+	.cover{
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 1;
+	}
 </style>

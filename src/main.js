@@ -13,6 +13,7 @@ const app = createApp(App);
 app.config.globalProperties.$bus = new mitt()
 app.provide('emitter', emitter);  
 
+
 import Vant from 'vant';
 import 'vant/lib/index.css';
 

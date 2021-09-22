@@ -45,7 +45,7 @@
 
 <style lang="less" scoped="scoped">
 	.hotSearch {
-		height: 300px;
+		height: 500px;
 		overflow: auto;
 	
 		.custom-title1 {

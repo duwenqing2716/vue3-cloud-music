@@ -1,9 +1,9 @@
 一:
-层级混乱
+层级混乱,为进行合理的布局规划组件层级
 
 二:
 使用事件总线进行兄弟组件通信,多次事件发射与接收,导致一系列的低性能优化操作
-增加代码量,多处v-show取代v-if,增加负荷
+增加代码量,多处v-show取代v-if,增加负荷,使用vuex代替保存数据在组件中传递
 
 三:
 ref与reactive使用界限不明确,不应该全使用reactive响应式数据
@@ -50,16 +50,21 @@ const longPoll = () => {
 					}, 2000)
 				})
 			}
+			
 六:
 vue3中一些功能在setup中使用需要引入并实例化，如路由,事件总线等等
 vue3 setup中顺序混乱  1.功能引入2.ref与reactive声明3.钩子函数4接口调用5其他事件处理函数6return所有
+
 七:
 未引入配置文件进行路径别名设置
+
 八:
 组件库全部引入效率低,应在main.js中按需引入
+
 九:
 事件总线与inject，provide
 二者传递多个参数时{a:xxx,b:xxx}
+传递多个属性时都是通过对象方式传递，如:事件总线，setItem，emit发射事件传参
 
 例子:
 两个必须写在外面 因为setup中有作用域且无this
@@ -86,3 +91,51 @@ emitter.emit("myevent", state.count);
 emitter.on('myevent', value => {
 	cellphone.value = value
 })
+
+十:
+刷新当前项目三种方式
+location.reload
+this.$router.go(0)
+上面两种方式都是整体刷新,对使用体验有所影响，耗时长
+例子:
+const onRefresh = () => {
+	state.isQRcode=false
+	nextTick(()=>{
+	  state.isQRcode=true
+	})
+	isRefresh.value = false;
+}
+v-if将其销毁,通过nextTick在下一个生命周期执行创建，实现局部刷新
+
+十一:
+不加语法糖绑定则后方一直为String类型,后方为Object类型时需要加{},且在其中不能使用-类型连字符,采用驼峰写法代替
+例子:
+:overlay-style="{backgroundColor:'transparent',zIndex:'1'}"
+
+十二:
+v-if与v-show
+v-if性能更高，但无出现动画，让人感觉突兀出现
+v-show性能相对较低,提前渲染，但有入场动画
+
+十三:
+在组件中使用emit发射事件,有时候却未接收时应该用
+在发射组件中声明
+例子:
+emits:['changeColor'],进行声明
+
+十四:
+换肤系统实现:
+方法一:使用框架elementUI实现
+方法二:(不能够实现自定义动态添加肤色，且配置多套class样式复杂繁琐)为不同class名的主题设置不同套的肤色，判断是否点击其他肤色并:class绑定class类名动态添加其他肤色进行覆盖
+例子:
+.dance-music-light-header{}
+.dance-music-dark-header{}
+.dance-music-green-header{}
+方法三:
+在根中:root{}声明var(--mainColor)最初属性
+在组件中设置动态变量
+background-color: var(--mainColor);
+在点击换肤时，此处用的watch监听设置只做参考
+document.body.style.setProperty('--mainColor',newValue)
+
+十五:

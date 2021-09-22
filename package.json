@@ -15,7 +15,8 @@
     "vant": "^3.2.2",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",
-    "vuex": "^4.0.0-0"
+    "vuex": "^4.0.0-0",
+    "xy-ui": "^1.10.3"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

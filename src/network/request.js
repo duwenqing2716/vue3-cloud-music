@@ -58,7 +58,7 @@ export function request(config) {
 		}else if(status >= 500){//服务端异常
 			Toast.fail('服务端无资源异常')
 		}else{
-			Toast.fail('服务端异常')
+			Toast.fail('出现未知错误')
 		}
     console.log(err);
 		return Promise.reject(err)

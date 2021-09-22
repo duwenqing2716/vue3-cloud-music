@@ -111,7 +111,7 @@
 				const password = state.user.password
 				if(!password){
 					Toast({
-					  message: '密码不能为空',
+					  message: '密码不能为空!',
 					  position: 'top'
 					})
 					code.value.focus()
@@ -119,7 +119,7 @@
 				}
 				if (!/^1[35789]\d{9}$/.test(state.user.mobile)) {
 				  Toast({
-				    message: '手机号码格式错误',
+				    message: '手机号码格式错误!',
 				    position: 'top'
 				  })
 				  cell.value.focus()
@@ -132,7 +132,7 @@
 				const mobile = state.user.mobile
 				if (!mobile) {
 				  Toast({
-				    message: '手机号码不能为空',
+				    message: '手机号码不能为空!',
 				    position: 'top'
 				  })
 					//设置焦点
@@ -141,7 +141,7 @@
 				}
 				if (!/(?!\d+$)(?!^[A-Za-z]+$)(?!^[_#@]+$).{8,20}/.test(state.user.password)) {
 				  Toast({
-				    message: '设置密码格式错误',
+				    message: '设置密码格式错误!',
 				    position: 'top'
 				  })
 				  code.value.focus()
@@ -154,6 +154,7 @@
 				if(!checkPhone() || !checkCode()){
 					return
 				}
+				// 若是优化则是判断手机号是否注册,只有当注册的情况下才发送验证码
 				// const res = await registPhone(state.user.mobile)
 				// if (res.exist === 1) {
 				// 	console.log('该手机号已经注册')
@@ -165,6 +166,11 @@
 				// }
 				
 				//验证码发送
+				Toast.loading({
+				  duration: 0, // 持续时间，0表示持续展示不停止
+				  forbidClick: true, // 是否禁止背景点击
+				  message: '验证码发送中...' // 提示消息
+				})
 				const data = await sendSms(state.user.mobile)
 				if(data.code != 200){
 					let msg = data.message
@@ -173,21 +179,21 @@
 						position: 'top'
 					})
 					return
+				}else{
+					Toast.success('发送成功!')
 				}
-        
 				// 事件总线接收其他页面的信息
         $bus.emit('myevent',{
 					cellphone:state.user.mobile,
 					pwd:state.user.password
 				})
-				
 				//发射事件,下一步
 				context.emit('currentStep')
 			}
 			
-			//发射事件,返回登录页 功能未完善
+			//发射事件,返回登录页
 			const backLogin = () =>{
-				context.emit('reLogin')
+				context.emit('reLogin',0)
 			}
 			
 			return{

@@ -8,7 +8,7 @@
 		</div>
 		<span class="notice">取一个昵称,让大家记住你</span>
 		<van-cell-group inset>
-		  <van-field v-model="name" class="nicheng" left-icon="contact" label="昵称" placeholder="昵称不少于4个英文或2个汉字" />
+		  <van-field v-model="name" class="nicheng"  ref='nickname' left-icon="contact" label="昵称" placeholder="昵称不少于4个英文或2个汉字" />
 		</van-cell-group>
 		<div style="margin: 16px;">
 		    <van-button block class="next" @click='onStart'>
@@ -24,13 +24,14 @@
 	//组件库引入
 	import{ Toast } from 'vant'
 	//接口引入
-	import { register } from '../../../../network/login.js'
+	import { register,initProfile } from '../../../../network/login.js'
 	export default {
 		name:'initProfile',
 		setup(props,context){
 			const internalInstance = getCurrentInstance();
 			const $bus = internalInstance.appContext.config.globalProperties.$bus
 			
+			const nickname = ref(null);
 			const name = ref('');
 			const cellphone = ref('')
 			const password = ref('')
@@ -42,32 +43,53 @@
 			  verifyCode.value = val.verifyCode
 			})
 			//注册成功操作
-			const onStart = () =>{
+			const onStart = async() =>{
+				//昵称正则验证
+				if(!name.value || name.value.length<4){
+					Toast({
+						message:'昵称不少于4个英文或2个汉字',
+						position:'top'
+					})
+					return
+				}
+				Toast.loading({
+				  duration: 0, // 持续时间，0表示持续展示不停止
+				  forbidClick: true, // 是否禁止背景点击
+				  message: '音乐之旅开启中...' // 提示消息
+				})
 				//注册接口
-				register({
+				const res = await register({
 					phone:cellphone.value,
 				  password:password.value,
 				  captcha:verifyCode.value,
-				  nickname:name.value}).then( res => {
-					console.log(res)
+				  nickname:name.value})
+				
+					let message = ''
 					if(res.code === 505){
-						Toast.fail({
-							message:'该昵称被占用,注册失败',
+						message = '该昵称被占用,注册失败！'
+						nickname.value.focus()
+					}else if(res.code === 200){
+						Toast.success({
+							message:'恭喜你注册成功！',
 							position:'top'
 						})
-						console.log('该昵称被占用,注册失败')
-					}else if(res.code === 200){
-						console.log('注册成功',res)
+						const data = await initProfile(nickname.value)
+						console.log(data,'昵称初始化')
 						context.emit('onSuccess')
 					}else{
-						console.log('未知原因,注册失败')
+						message = '未知原因,注册失败！'
+						name.value = ''
+						nickname.value.focus()
 					}
-				})
+					Toast.fail({
+						message:message,
+						position:'top'
+					})
 			}
 			
-			//发射事件返回登录页 功能未完善
+			//发射事件返回登录页
 			const backLogin = () =>{
-				context.emit('backLogin')
+				context.emit('backLogin',0)
 			}
 			
 			return { 

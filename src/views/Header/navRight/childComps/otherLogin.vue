@@ -61,15 +61,19 @@
 <script>
 	//vue相关功能引入
 	import { ref,reactive,inject,getCurrentInstance,onUnmounted } from 'vue'
-	
+	//vuex功能引入
+	import{ useStore } from 'vuex'
 	//组件库引入
 	import { Toast } from 'vant'
-	
 	//接口引入
 	import { cellphoneLogin,registPhone } from '../../../../network/login.js'
+	//存储本地cookie
+	import { setItem } from '../../../../store/storage.js'
 	export default {
 		name:'otherLogin',
 		setup(props, context) {
+			//使用vuex并实例化
+			const store = useStore()
 			//事件总线
 			const internalInstance = getCurrentInstance();
 			const $bus = internalInstance.appContext.config.globalProperties.$bus;
@@ -91,16 +95,16 @@
 				formRules: {
 					mobile: [{
 							required: true,
-							message: '请填写手机号'
+							message: '请填写手机号!'
 						},
 						{
 							pattern: /^1[3|5|7|8|9]\d{9}$/,
-							message: '手机号填写格式错误'
+							message: '手机号填写格式错误!'
 						}
 					],
 					password: [{
 						required: true,
-						message: '请填写密码'
+						message: '请填写密码!'
 					}
 				]
 				}
@@ -114,7 +118,7 @@
 				context.emit('onChangeModes')
 			}
 			
-			//请求登录接口,并进行相应数据处理  功能缺失:判断手机号是否注册,未注册直接跳转发送验证码页面进行一键注册
+			//请求登录接口,并进行相应数据处理  更完善的注册流程:判断手机号是否注册,未注册直接跳转发送验证码页面进行一键注册
 			const onLogin = async() => {
 				
 				//判断是否勾选相关政策  下方有封装的相同方法未使用
@@ -126,19 +130,6 @@
 					})
 					return
 				}
-				
-				// 判断手机号是否注册
-				// registPhone(state.user.mobile).then( res => {
-				// 	// console.log(res,res.exist)
-				// 	if (res.exist != 1) {
-				// 		console.log('失败')
-				// 		Toast({
-				// 		  message: '该手机号未注册',
-				// 		  position: 'top'
-				// 		})
-				// 		return 
-    //       }
-				// })
 				
 				//判断是否符合正则
 				if(!checkPhone() || !checkCode()){
@@ -155,19 +146,28 @@
 					const res = await registPhone(state.user.mobile)
 					if (res.exist != 1) {
 						Toast({
-						  message: '该手机号未注册',
+						  message: '该手机号未注册!',
 						  position: 'top'
 						})
+						//未做功能跳转昵称输入页一键注册
 						return
 					}
 					const  data  = await cellphoneLogin(state.user.mobile,state.user.password)
-					if( data.code&&data.code === 200){
-						Toast.success('登录成功')
-						// this.$store.commit("addUser", res.data);
-						// this.$parent.hiddleLogin();
-						// localStorage.setItem('cookie',res.data.cookie);
-						// localStorage.setItem('avatar',res.data.profile.avatarUrl);
-						// localStorage.setItem('uid',res.data.profile.userId)
+					// console.log(data)
+					if( data.code && data.code === 200){
+						Toast.success('登录成功!')
+						//用户数据存储于本地和vuex
+						//本地存储
+						setItem('cloudMusicAvatar',data.profile.avatarUrl)
+						setItem('cloudMusicNickname',data.profile.nickname)
+						setItem('cloudMusicUserId',data.profile.userId)
+						//cookie存储
+						let list = data.cookie.split(';');
+						for (let i = 0; i < list.length; i++) {
+							document.cookie = list[i]
+						}
+						//vuex存储
+						store.commit("addUserData",data);
 						context.emit('onSuccessLogin')
 					}else{
 						    state.user.mobile=''
@@ -180,6 +180,7 @@
 					}else if(err&&err.response&&err.response===429){
 						state.message='发送过于频繁,请稍后重试！'
 					}else{
+						// console.log(err)
 						state.message='发生未知错误,请重新登录！'
 					}
 					state.user.mobile=''
@@ -191,12 +192,13 @@
 			  }
 			};
 			
+			
 			//密码正则匹配
 			const checkCode = () => {
 				const password = state.user.password
 				if(!password){
 					Toast({
-					  message: '密码不能为空',
+					  message: '密码不能为空!',
 					  position: 'top'
 					})
 					code.value.focus()
@@ -210,7 +212,7 @@
 				const mobile = state.user.mobile
 				if (!mobile) {
 				  Toast({
-				    message: '手机号码不能为空',
+				    message: '手机号码不能为空!',
 				    position: 'top'
 				  })
 					//设置焦点
@@ -219,7 +221,7 @@
 				}
 				if (!/^1[35789]\d{9}$/.test(state.user.mobile)) {
 				  Toast({
-				    message: '手机号码格式错误',
+				    message: '手机号码格式错误!',
 				    position: 'top'
 				  })
 				  cell.value.focus()
@@ -244,7 +246,6 @@
 				//重设密码状态为0,注册为1
 				// 方法一 事件总线
 				$bus.emit('regist',value)
-				
 				// 方法二 inject,provide暴露与接收
 				// emitter.emit('regist',value);
 				
