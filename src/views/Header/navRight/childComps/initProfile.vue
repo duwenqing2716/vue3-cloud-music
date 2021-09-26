@@ -70,12 +70,12 @@
 						nickname.value.focus()
 					}else if(res.code === 200){
 						Toast.success({
-							message:'恭喜你注册成功！',
+							message:'恭喜你注册成功!请重新登录',
 							position:'top'
 						})
 						const data = await initProfile(nickname.value)
 						console.log(data,'昵称初始化')
-						context.emit('onSuccess')
+						context.emit('onSuccess','')
 					}else{
 						message = '未知原因,注册失败！'
 						name.value = ''

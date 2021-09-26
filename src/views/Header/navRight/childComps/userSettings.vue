@@ -38,7 +38,7 @@
 		    <div class='dot' style="position: absolute;left: 75px;top: 15px;width: 10px;height: 10px;background-color: red;z-index: 1;border-radius: 50%;"></div>
 		  </template>
 		</van-cell>
-		<van-cell value="" is-link>
+		<van-cell value="" is-link @click='userSet'>
 		  <template #title>
 				<i class="iconfont icon-geren"></i>
 		    <view class="van-cell-text">个人信息设置</view>
@@ -72,40 +72,43 @@
 	import { Toast } from 'vant'
 	//vue相关功能引入
 	import { ref,reactive,inject,onMounted,computed } from 'vue'
-	
+	//接口引入
 	import { getUserEvents,getUserFollows,getUserFolloweds,userLogout } from '../../../../network/profile.js'
-	
+	//本地存储移除功能引入
 	import { removeItem } from '../../../../store/storage.js'
+	//由于setup中不存在this,因此在setup中使用路由必须先声明
+	import { useRouter } from 'vue-router'
 	export default{
 		name:'userSettings',
-		props:{
-			
-		},
-		components:{
-			
-		},
 		setup(props,context){
+			const router = useRouter() //实例化路由
 			const store = useStore()
+			
 			const uid = ref(null)
+			
 			const state = reactive({
 				follow:{},
 				events:null,
 				fans:{}
 			})
-			
+			//退出登录
 			const logout = async() => {
-				// console.log('1123')
 				const res = await userLogout()
 				// console.log(store.state.isLogin)
-				console.log(res)
+				// console.log(res)
 				if(res.code!=200){
 					Toast.fail('退出登录失败')
 				}else{
-					
 					context.emit('onCloseProfile')
+					router.replace({path:'/home'})
 				}
 			}
-			
+			//路由跳转用户设置页面
+			const userSet = () => {
+				router.push({path:'/home/profile'})
+				context.emit('onClose')
+			}
+			//挂载时获取用户信息
 			onMounted(async()=>{
 				uid.value = store.getters.getUserId
 				const res = await getUserEvents({uid:uid.value})
@@ -118,7 +121,8 @@
 			
 			return{
 				state,
-				logout
+				logout,
+				userSet
 			}
 		}
 	}

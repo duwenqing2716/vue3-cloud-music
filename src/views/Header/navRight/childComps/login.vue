@@ -1,8 +1,12 @@
 <template>
 	<div class="login" @click="$store.getters.getLoginStatus?userSetting():showPopup()">
+		<div>
 		<img :src=" $store.getters.getLoginStatus? $store.getters.getAvatar : '/img/test.b66d0610.5c288444.jpg' " alt="" id="login">
+		</div>
 		<div style="display: inline-block">
 			<span>{{$store.getters.getLoginStatus? $store.getters.getNickname : '未登录'}}</span>
+		</div>
+		<div>
 			<i class="iconfont icon-sanjiao_xia"></i>
 		</div>
 	</div>
@@ -19,7 +23,6 @@
 				<span class="other-modes" @click="state.isQRcode=false">选择其他登录模式 ></span>
 			</div>
 		</div>
-
 		<div class="other-scan" v-else-if='currentStep === 0'>
 			<other-login @onChangeModes='onChangeModes' @onSuccessLogin='onSuccessLogin' @currentStep='addStep'></other-login>
 		</div>
@@ -33,9 +36,9 @@
 			<init-profile @backLogin='subtractStep' @onSuccess='onSuccessLogin'></init-profile>
 		</div>
 	</van-popup>
-	<van-popover v-model:show="loginDetail" class="info" v-if="loginDetail" :offset=[48,0] style="width: 300px" placement="bottom-end"
+	<van-popover v-model:show="loginDetail" class="info" :offset=[48,0] style="width: 300px" placement="bottom-end"
 	 :overlay='true' :overlay-style="{backgroundColor:'transparent',zIndex:'1'}" :show-arrow='false'>
-		<user-settings @onCloseProfile='onCloseProfile'></user-settings>
+		<user-settings @onCloseProfile='onCloseProfile' @onClose='userSetting'></user-settings>
 	</van-popover>
 </template>
 
@@ -69,11 +72,11 @@
 		getQRImage,
 		checkImage,
 		refreshLogin,
-		loginStatus
+		getLoginStatus
 	} from '../../../../network/login.js'
 
 	import {
-		getItem
+		getItem,setItem
 	} from '../../../../store/storage.js'
 	//vuex功能引入
 	import {
@@ -106,15 +109,16 @@
 				timer: null,
 				userData: {}
 			})
-
+      //弹出与关闭用户设置页面
 			const userSetting = () => {
 				loginDetail.value = !loginDetail.value
 			}
-
 			//展示弹出并发送请求获取key
 			const showPopup = () => {
+				//展示currentStep为0的页面
 				currentStep.value = 0
 				state.isQRcode = true
+				//确认关闭长轮询
 				onClose()
 				Toast.loading({
 					duration: 0, // 持续时间，0表示持续展示不停止
@@ -124,25 +128,23 @@
 				show.value = true;
 				// Toast.loading('加载中...')
 				getQRCode(timerstamp.value || Date.now()).then(res => {
-					// console.log(res.data.unikey,'key')
 					state.unikey = res.data.unikey
 				})
 			}
 
-			//上一步
+			//下一步
 			const addStep = () => {
 				currentStep.value++
-				// console.log('++',currentStep.value)
 			}
 
-			//下一步
+			//上一步
 			const subtractStep = (val) => {
+				// 判断是否返回登录页
 				if (val === 0) {
 					currentStep.value = val
 				} else {
 					currentStep.value--
 				}
-				// console.log('--',currentStep.value)
 			}
 
 			//长轮询监听二维码是否失效 
@@ -151,9 +153,7 @@
 					clearTimeout(state.timer)
 				}
 				// console.log('长轮询开始')
-				sucsTimer.value = Date.now()
-				console.log(sucsTimer.value)
-				const res = await checkImage(state.unikey, sucsTimer.value)
+				const res = await checkImage(state.unikey, Date.now())
 				
 					if (res.code === 801) {
 						// 801为等待扫码
@@ -165,14 +165,28 @@
 						// 803为授权登录成功(803状态码下会返回cookies)
 						clearTimeout(state.timer)
 						Toast.success('登陆成功')
-						await getLoginStatus()
-						await onSuccessLogin()
-						// return state.userData = res.cookie
+						const { data } = await getLoginStatus(Date.now())
+						if(data.profile!=null){
+							//登录状态
+							//用户数据存储于本地和vuex
+							//本地存储
+							setItem('cloudMusicAvatar',data.profile.avatarUrl)
+							setItem('cloudMusicNickname',data.profile.nickname)
+							setItem('cloudMusicUserId',data.profile.userId)
+							//vuex存储
+							store.commit("addUserData",data);
+							//改变登录状态并关闭页面
+							onSuccessLogin(true)
+						}else{
+							//非登录状态
+							// 改变登录状态并关闭页面
+							onCloseProfile()
+						}
+						return
 					}
 					if (res.code === 800) {
 						//刷新验证码 800为二维码过期
 						isRefresh.value = true;
-						// console.log(res.message)
 						return
 					}
 					state.timer = setTimeout(() => {
@@ -183,40 +197,38 @@
 			//二维码失效刷新
 			const onRefresh = () => {
 				state.isQRcode = false
+				//下一个周期刷新回原页面
 				nextTick(() => {
 					state.isQRcode = true
 				})
 				isRefresh.value = false;
-			}
-      //二维码获取登录状态  未知原因获取不到，与时间戳有关
-			const getLoginStatus = async () => {
-				const res = await loginStatus(Date.now())
-				console.log(res)
 			}
 			//关闭并清空长轮询timer定时器
 			const onClose = () => {
 				clearTimeout(state.timer)
 				state.timer = null
 			}
-      //清空cookie，改变登录状态并关闭profile弹出层
+      //登录失败时,清空cookie，改变登录状态并关闭profile弹出层
 			const onCloseProfile = () => {
 				if (store.state.isLogin) {
 					store.commit('changeLoginStatus', '')
 				}
+				//清空cookie，好像切换登录状态自动清空，操作多余
 				var keys = document.cookie.match(/[^ =;]+(?=\=)/g);
 				if (keys) {
 					for (var i = keys.length; i--;)
 						document.cookie = keys[i] + '=0;expires=' + new Date(0).toUTCString()
 				}
+				//关闭弹出层
 				loginDetail.value = false
 			}
-			//关闭弹出层返回原页面
-			const onSuccessLogin = async () => {
-				// console.log('登录成功并关闭')
+			//登陆成功并关闭弹出层返回原页面
+			const onSuccessLogin = async (val) => {
 				show.value = false
+				//关闭长轮询
 				onClose()
 				// getLoginStatus()
-				store.commit('changeLoginStatus', true)
+				store.commit('changeLoginStatus', val)
 			}
 
 			//切换二维码与登录页
@@ -281,9 +293,20 @@
 		margin-right: 30px;
 		cursor: pointer;
 		z-index: 2;
-
+    width: 150px;
+		display: flex;
 		&:hover {
 			font-weight: bold;
+		}
+		div{
+			flex: 1;
+			span{
+				display: inline-block;
+				width: 80px;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
 		}
 
 		img {

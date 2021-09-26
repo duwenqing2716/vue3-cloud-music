@@ -88,7 +88,8 @@
 							const repwd = await register({
 								phone:cellphone.value,
 							  password:password.value,
-							  captcha:verifyCode.value})
+							  captcha:verifyCode.value,
+							})
 								//报错情况未处理
 							Toast.success('修改密码成功,请重新登录!')
 							setItem('cloudMusicCookie',data.cookie)
@@ -97,7 +98,7 @@
 							setItem('cloudMusicUserId',data.profile.userId)
 							store.commit("addUserData",data);
 							//登录成功发射事件关闭弹出
-							context.emit('onSuccess')
+							context.emit('onSuccess','')
 						}else{
 							Toast.success('验证码对比成功!')
 							// 事件总线发射数据到其他页面

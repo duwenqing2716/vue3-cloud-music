@@ -5,6 +5,7 @@ export function request(config) {
 	const instance = axios.create({
 	  baseURL:"http://localhost:3000",
 	  // timeout: 5000
+		withCredentials: true//关键:跨域设置获取cookie请求头，否则将为null
 	})
   // 2.axios的拦截器
   // 2.1.请求拦截的作用

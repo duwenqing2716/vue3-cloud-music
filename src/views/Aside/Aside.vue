@@ -48,7 +48,9 @@
 </template>
 
 <script>
+	//vue功能引入
 	import { ref,onMounted,watch } from 'vue';
+	//本地存储引入
 	import { getItem } from '../../store/storage.js'
 	export default {
 		name:'Aside',
@@ -61,21 +63,18 @@
 				}
 			}
 		},
-		components:{
-			
-		},
 		setup(props,context){
 			const active = ref(0);
 			const theme = ref(null);
 			const isShowIcon = ref(true);
-			
+			//是否显示自我创建的歌单 默认显示
 			const onCreateList = () => {
 				isShowIcon.value = !isShowIcon.value
 			}
 			
 			//挂载时更改内容,
 			onMounted(()=>{
-				//判断本地是否有换肤值
+				//判断本地是否有换肤值 将组件中对应变量值设置为存储的肤色值
 				if(getItem('theme')){
 					theme.value = getItem('theme').theme
 					document.body.style.setProperty('--van-sidebar-selected-border-color',theme.value)
@@ -98,8 +97,8 @@
 
 <style lang="less" scoped="scoped">
 	.cloud-aside{
-		width: 300px;
-		height: 600px;
+		width: 20%;
+		height: 84%;
 		position:fixed;
 		padding-right: 10px;
 		border-right: 1px solid rgba(125,125,125,0.3);

@@ -1,5 +1,5 @@
 一:
-层级混乱,为进行合理的布局规划组件层级
+层级混乱,未进行合理的布局规划组件层级
 
 二:
 使用事件总线进行兄弟组件通信,多次事件发射与接收,导致一系列的低性能优化操作
@@ -16,40 +16,40 @@ ref与reactive使用界限不明确,不应该全使用reactive响应式数据
 解决方式一:
 例子:进入后立即执行清空操作
 watchEffect( (onDebounce) => {
-				let timer=getKeyWordList(props.searchText)
-				onDebounce( () => {
-					clearTimeout(timer)
-				})
+	let timer=getKeyWordList(props.searchText)
+	onDebounce( () => {
+		clearTimeout(timer)
+	})
 })
 解决方式二:
 例子:将timer放入响应式数据中保存以便下次清空或者执行
 const longPoll = () => {
-				if (state.timer) {
-					clearTimeout(state.timer)
-				}
-				// console.log('长轮询开始')
-				checkImage(state.unikey, Date.now()).then(res => {
-					// console.log(res)
-					if (res.code === 801) {
-						// console.log(res.message)
-					}
-					if (res.code === 802) {
-						// console.log(res.message)
-					}
-					if (res.code === 803) {
-						// console.log(res)
-						return state.userData = res.cookie
-					}
-					if (res.code === 800) {
-						isRefresh.value = true;
-						// console.log(res.message)
-						return
-					}
-					state.timer = setTimeout(() => {
-						longPoll()
-					}, 2000)
-				})
-			}
+	if (state.timer) {
+		clearTimeout(state.timer)
+	}
+	// console.log('长轮询开始')
+	checkImage(state.unikey, Date.now()).then(res => {
+		// console.log(res)
+		if (res.code === 801) {
+			// console.log(res.message)
+		}
+		if (res.code === 802) {
+			// console.log(res.message)
+		}
+		if (res.code === 803) {
+			// console.log(res)
+			return state.userData = res.cookie
+		}
+		if (res.code === 800) {
+			isRefresh.value = true;
+			// console.log(res.message)
+			return
+		}
+		state.timer = setTimeout(() => {
+			longPoll()
+		}, 2000)
+	})
+}
 			
 六:
 vue3中一些功能在setup中使用需要引入并实例化，如路由,事件总线等等
@@ -94,9 +94,10 @@ emitter.on('myevent', value => {
 
 十:
 刷新当前项目三种方式
-location.reload
-this.$router.go(0)
+1,location.reload
+2,this.$router.go(0)
 上面两种方式都是整体刷新,对使用体验有所影响，耗时长
+3,v-if将其销毁,通过nextTick在下一个生命周期执行创建，实现局部刷新
 例子:
 const onRefresh = () => {
 	state.isQRcode=false
@@ -105,7 +106,6 @@ const onRefresh = () => {
 	})
 	isRefresh.value = false;
 }
-v-if将其销毁,通过nextTick在下一个生命周期执行创建，实现局部刷新
 
 十一:
 不加语法糖绑定则后方一直为String类型,后方为Object类型时需要加{},且在其中不能使用-类型连字符,采用驼峰写法代替
@@ -139,3 +139,49 @@ background-color: var(--mainColor);
 document.body.style.setProperty('--mainColor',newValue)
 
 十五:
+vue3路由 嵌套路由
+1.父路由 设置跳转 以及子路由
+例子:
+{
+	path:'/home',
+	name: 'home',
+	component:Home,
+	redirect:'/home/recommend',
+	children: [
+			{
+				path: '/home/recommend',
+				component:Footer
+			},
+			{
+				path: '/home/profile',
+				component: Article
+			}
+	]
+}
+2.还必须在父组件中设置切换的页面嵌套 否则不会显示
+例子:
+<div>
+	<Header @onThemeChange='onThemeChange'></Header>
+	<Aside :theme='state.theme'></Aside>
+	<router-view/>
+</div>
+
+十六:
+1. :root{}为最高级根 类似body
+2.登录页面 对于nickname昵称的设置，因为昵称不是固定值，因此在对待span标签中的{{nickname}}值时将span设置固定宽度,隐藏超出,以省略号代替
+例子:
+span{
+	display: inline-block;
+	width: 80px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+3.凡是设置变粗动态交互效果时,最好将其元素设置固定宽度以免影响其他元素波动,或者一般通过颜色加深在达到其效果
+
+十七:(后面更新会进行重新处理)
+登录页面最大问题:
+未设计好请求数据时机,与数据缓存机制,导致bug:在不同浏览器打开不会做到更新最新内容,而是上次设置过的数据
+原因:
+重新刷新打开页面未进行数据请求而是到本地进行数据获取
+本地数据并不是最新数据,而是上次存储的数据

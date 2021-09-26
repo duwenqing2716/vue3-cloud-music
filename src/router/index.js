@@ -1,5 +1,8 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+
 import Home from '../views/CloudMuisc.vue'
+import Article from '../views/Article/Article.vue'
+import Footer from '../views/footer.vue'
 
 const routes = [
   {
@@ -8,7 +11,19 @@ const routes = [
   },
 	{
 		path:'/home',
-		component:Home
+		name: 'home',
+		component:Home,
+		redirect:'/home/recommend',
+		children: [
+		    {
+		      path: '/home/recommend',
+		      component:Footer
+		    },
+				{
+					path: '/home/profile',
+					component: Article
+				}
+	  ]
 	}
 ]
 

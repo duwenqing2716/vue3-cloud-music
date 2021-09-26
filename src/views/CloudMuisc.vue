@@ -2,14 +2,13 @@
 	<div>
 		<Header @onThemeChange='onThemeChange'></Header>
 		<Aside :theme='state.theme'></Aside>
-		<Article></Article>
+		<router-view/>
 	</div>
 </template>
 
 <script>
 	import Header from './Header/Header.vue'
 	import Aside from './Aside/Aside.vue'
-	import Article from './Article/Article.vue'
 	
 	//vue功能引入
 	import { ref,reactive } from 'vue'
@@ -20,8 +19,7 @@
 		},
 		components:{
 			Header,
-			Aside,
-			Article
+			Aside
 		},
 		setup(){
 			const state = reactive({

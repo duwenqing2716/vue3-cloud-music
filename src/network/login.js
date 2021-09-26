@@ -104,7 +104,7 @@ export const initProfile = (nickname) => {
 }
 
 //获取登录状态
-export const loginStatus = (timerstamp) =>{
+export const getLoginStatus = (timerstamp) =>{
 	return request({
 		url:'/login/status',
 		params:{

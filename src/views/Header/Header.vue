@@ -9,7 +9,7 @@
 			<van-col span="9" offset="2">
 			  <search></search>
 			</van-col>
-			<van-col span="6" offset="3">
+			<van-col span="6" offset="2">
 			  <nav-right @changeColor='changeColor'></nav-right>
 			</van-col>
 		</van-row>
@@ -24,7 +24,8 @@
 	import NavRight from './navRight/NavRight.vue'
 	//获取本地存储引入
 	import { getItem } from '../../store/storage.js'
-
+  //由于setup中不存在this,因此在setup中使用路由必须先声明
+  import { useRouter } from 'vue-router'
 	export default {
 		name: 'Header',
 		components: {
@@ -33,6 +34,7 @@
 		},
 		
 		setup(props,context) {	
+			const router = useRouter() //实例化路由
 			const theme = ref(null)
 			const backHome = () => {
 				router.replace({

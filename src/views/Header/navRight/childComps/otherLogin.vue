@@ -162,13 +162,13 @@
 						setItem('cloudMusicNickname',data.profile.nickname)
 						setItem('cloudMusicUserId',data.profile.userId)
 						//cookie存储
-						let list = data.cookie.split(';');
-						for (let i = 0; i < list.length; i++) {
-							document.cookie = list[i]
-						}
+						// let list = data.cookie.split(';');
+						// for (let i = 0; i < list.length; i++) {
+						// 	document.cookie = list[i]
+						// }
 						//vuex存储
 						store.commit("addUserData",data);
-						context.emit('onSuccessLogin')
+						context.emit('onSuccessLogin',true)
 					}else{
 						    state.user.mobile=''
 								state.user.password=''
