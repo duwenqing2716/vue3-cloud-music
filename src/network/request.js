@@ -61,7 +61,7 @@ export function request(config) {
 		}else{
 			Toast.fail('出现未知错误')
 		}
-    console.log(err);
+    // console.log(err);
 		return Promise.reject(err)
   })
 

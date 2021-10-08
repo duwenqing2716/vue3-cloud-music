@@ -14,8 +14,8 @@ export const getQRImage = (key,timerstamp,qrimg) => {
 	return request({
 		url:'/login/qr/create',
 		params:{
-			  key:key,
-		    timerstamp:timerstamp
+			  key,
+		    timerstamp
 		}
 	})
 }
@@ -34,7 +34,7 @@ export const refreshLogin = (timerstamp) => {
 	return request({
 		url:'/login/refresh',
 		params:{
-		    timerstamp:timerstamp
+		    timerstamp
 		}
 	})
 }
@@ -48,12 +48,13 @@ export const registPhone = (phone) => {
 	})
 }
 //手机登录
-export const cellphoneLogin = (phone,password) => {
+export const cellphoneLogin = (phone,password,timerstamp) => {
 	return request({
 		url:'/login/cellphone',
 		params:{
 			phone,
-			password
+			password,
+			timerstamp
 		}
 	})
 }
@@ -95,7 +96,7 @@ export const register = params =>{
 		params
 	})
 }
-// 初始化昵称
+// 初始化昵称 
 export const initProfile = (nickname) => {
 	return request({
 		url:'/activate/init/profile',

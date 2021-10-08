@@ -26,3 +26,30 @@ export const getUserFollows = params => {
 		params
 	})
 }
+//签到 默认 0, 其中 0 为安卓端签到 ,1 为 web/PC 签到
+export const getUserSignin = type => {
+	return request({
+		url:'/daily_signin',
+		params:{
+			type
+		}
+	})
+}
+//获取已喜欢音乐id列表(id数组)
+export const getUserLikeList = uid => {
+	return request({
+		url:'/likelist',
+		params:{
+			uid
+		}
+	})
+}
+//传入用户 id, 可以获取用户歌单
+export const getUserPlaylist = uid => {
+	return request({
+		url:'/user/playlist',
+		params:{
+			uid
+		}
+	})
+}

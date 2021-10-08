@@ -213,7 +213,9 @@
 			onMounted(async () => {
 				const uid = store.getters.getUserId
 				const data = await getUserCount(Date.now())
+				// console.log(data)
 				nextTick(() => {
+					// console.log(data)
 					nickname.value = data.profile.nickname //昵称
 					avatar.value = data.profile.avatarUrl //头像
 					text.value = data.profile.signature //签名

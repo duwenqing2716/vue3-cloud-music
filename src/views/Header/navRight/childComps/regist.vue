@@ -172,6 +172,7 @@
 				  message: '验证码发送中...' // 提示消息
 				})
 				const data = await sendSms(state.user.mobile)
+				// console.log(data)
 				if(data.code != 200){
 					let msg = data.message
 					Toast({

@@ -152,7 +152,7 @@
 						//未做功能跳转昵称输入页一键注册
 						return
 					}
-					const  data  = await cellphoneLogin(state.user.mobile,state.user.password)
+					const  data  = await cellphoneLogin(state.user.mobile,state.user.password,Date.now())
 					// console.log(data)
 					if( data.code && data.code === 200){
 						Toast.success('登录成功!')
@@ -312,8 +312,17 @@
 			color: #EC4141;
 			margin:0 8px;
 			cursor: pointer;
-			&:hover{
-				color: skyblue;
+			&:nth-child(1):hover{
+				color: #68B734;
+			}
+			&:nth-child(2):hover{
+				color: #34A0DF;
+			}
+			&:nth-child(3):hover{
+				color: #FAD65F;
+			}
+			&:nth-child(4):hover{
+				color: hotpink;
 			}
 		}
 		

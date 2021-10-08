@@ -1,84 +1,182 @@
 <template>
-	<div>	
-	  	<div class="email-header">
-	  		<span class="aside" style="margin-left:-30px;">消息</span>
-				<span style="width: 170px;"></span>
-	  		<span class="aside">一键已读</span>
-	  	</div>
-	  	<van-tabs v-model:active="active" type="card">
-	  	  <van-tab title="私信">
-					<div>
-					<div class='dot' style="position: absolute;top: 62%;left:14px;width: 10px;height: 10px;background-color: red;z-index: 1;border-radius: 50%;"></div>
-					<div class="infoList" style="position: absolute;left: 30px;top:45px;width: 40px;z-index: 1;">
-						<img src="../../../../assets/img/logo.png" alt="" style="width: 40px;height: 40px;border-radius:50%;">
+	<div>
+		<div class="email-header">
+			<span class="aside" style="margin-left:-30px;">消息</span>
+			<span style="width: 170px;"></span>
+			<span class="aside">一键已读</span>
+		</div>
+		<van-tabs v-model:active="active" type="card">
+			<van-tab title="私信" style="height: 530px;overflow: auto;">
+				<van-badge v-show="countInfo" :content="countInfo" style="position: absolute;top: -5px;left: 100px;">
+				</van-badge>
+				<div class="mainInfo" v-for="(item,index) in lists">
+					<div style="display: flex;margin-left: 20px;">
+						<div class='dot' v-show="!item.noticeAccountFlag"></div>
+						<div class="infoList">
+							<img :src="item.fromUser.avatarUrl" alt="">
+						</div>
 					</div>
-					<van-cell style="margin-left: 60px;width: 340px;">
-					  <!-- 使用 title 插槽来自定义标题 -->
-					  <template #title>
-					    <span class="custom-title">单元格</span>
-					  </template>
+					<van-cell style="width: 300px;">
+						<template #title>
+							<span class="custom-title">{{item.fromUser.nickname}}</span>
+						</template>
 						<template #label>
-							<span>您有一笔云贝即将过期</span>
-						</template>
-						<template #value>
-							<span>8月11日</span>
-						</template>
+							<span>{{JSON.parse(item.lastMsg).msg}}</span>
+						</template>	
 					</van-cell>
-					</div>
-				</van-tab>
-	  	  <van-tab title="评论">
-				</van-tab>
-	  	  <van-tab title="@我"></van-tab>
-	  	  <van-tab title="通知"></van-tab>
-	  	</van-tabs>
+						<span class="date">{{lastTime(item)}}</span>
+				</div>
+			</van-tab>
+			<van-tab title="评论" style="height: 530px;overflow: auto;">
+			  
+			</van-tab>
+			<van-tab title="@我"></van-tab>
+			<van-tab title="通知"></van-tab>
+		</van-tabs>
 	</div>
 </template>
 
 <script>
 	//vue功能引入
-	import { ref,reactive,onMounted,computed } from 'vue'
-	import { privateInfo } from '../../../../network/infoMsg.js'
-	import { useStore,mapState } from 'vuex'
-	import { getItem } from '../../../../store/storage.js'
-	export default{
-		name:'infoComment',
-		components:{
-			
-		},
-		props:{
-			
-		},
-		setup(){
+	import {
+		ref,
+		reactive,
+		onMounted,
+		computed
+	} from 'vue'
+	//接口引入
+	import {
+		privateInfo,privateComment,privateAtme,privateNotice
+	} from '../../../../network/infoMsg.js'
+	//vuex功能引入
+	import {
+		useStore,
+		mapState
+	} from 'vuex'
+	//本地存储功能引入
+	import {
+		getItem
+	} from '../../../../store/storage.js'
+	//组件库引入
+	import {
+		Toast
+	} from 'vant'
+	export default {
+		name: 'infoComment',
+		setup() {
 			const store = useStore();
 			const active = ref(0);
 			const uid = ref(null);
-			
-			// const uid = computed(() => ({
-   //    ...mapState(['userData'])
-   //  })).value.userData.bind({ $store: store })
-		
-			onMounted(async()=>{
-				uid.value = store.getters.getUserId
-				privateInfo({uid:uid.value,timestamp:Date.now()}).then( res => {
+			const lists = ref({});
+			const time = ref('');
+			const countInfo = ref(null);
+      //时间格式化功能 未完善 以后将其封装可多处使用
+      const lastTime = (item) => {
+					const date = new Date(item.lastMsgTime)
+					const now = new Date()
+					if(now-date<86400000){
+						return date.getHours()+':'+date.getMinutes()
+					}else if(now-date<31536000000){
+						return (date.getMonth()+1)+'月'+date.getDate()+'日'
+					}else{
+						return date.getFullYear()+'年'+(date.getMonth()+1)+'月'+date.getDate()+'日'
+					}
+			}
+			//挂载时
+			onMounted(async () => {
+				Toast.loading({
+				  duration: 0, // 持续时间，0表示持续展示不停止
+				  forbidClick: true, // 是否禁止背景点击
+				  message: '加载中...' // 提示消息
+				})
+				//获取私信操作
+				privateInfo().then(res => {
+					if (res.code != 200) {
+						Toast.fail({
+							message: '获取消息失败',
+							position: 'top'
+						})
+					} else {
+						lists.value = res.msgs //详细
+						countInfo.value = res.newMsgCount //总数
+						Toast.clear()
+					}
+				})
+				//获取通知操作 未完善 因为不知道此处具体ui是什么样所以未做评论，@我，通知等等功能
+				privateNotice().then(res =>{
 					console.log(res)
 				})
 			})
-			return { 
-				active
+			return {
+				active,
+				lists,
+				time,
+				lastTime,
+				countInfo
 			};
 		}
 	}
 </script>
 
 <style lang="less" scoped="scoped">
-	.email-header{
+	.email-header {
 		display: flex;
 		height: 40px;
-		.aside{
+
+		.aside {
 			flex: 1;
 			text-align: center;
 			line-height: 40px;
 			font-size: 18px;
 		}
+	}
+  .mainInfo{
+	  display: flex;
+		position: relative;
+	.dot {
+		width: 10px;
+		height: 10px;
+		background-color: red;
+		border-radius: 50%;
+		margin-top: calc(50% - 2px)
+	}
+	.infoList{
+		margin-left: 10px;
+		img{
+			width: 45px;
+			height: 45px;
+			border-radius:50%;
+			margin-top:calc(50% - 8px);
+		}
+	}
+	.date{
+		font-size: 14px;
+		position: absolute;
+		color: gray;
+		right: 20px;
+		margin-top: 15px;
+	}
+	:deep(.van-cell__title){
+		flex: none;
+		width: 100%;
+		padding-bottom: 10px;
+		.van-cell__label{
+			margin-top: -5px;
+		}
+		span{
+			width: 100%;
+			display: inline-block;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	}
+	.van-cell__value{
+		span{
+			display: block;
+			line-height: 50px;
+		}
+	}
+	
 	}
 </style>

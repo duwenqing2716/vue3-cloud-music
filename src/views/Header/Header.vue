@@ -41,22 +41,24 @@
 					path: '/home'
 				})
 			}
-			//接收事件并按值传给换肤less中的变量
+			//接收事件并按值传给换肤less中的变量(处理所有换肤)
 			const changeColor = (color) =>{
 				document.body.style.setProperty('--mainColor',color.theme)
-				context.emit('onThemeChange',color.theme)
+				document.body.style.setProperty('--van-tabs-bottom-bar-color',color.theme)
+				document.body.style.setProperty('--van-sidebar-selected-border-color',color.theme)
 			}
-			//挂载时更改内容,
+			//挂载时更改内容,(处理所有换肤)
 			onMounted(()=>{
 				//判断本地是否有换肤值
 				if(getItem('theme')){
 					theme.value = getItem('theme').theme
 				}
 			})
-			//监听是否换肤,并更改less中的变量
+			//监听是否换肤,并更改less中的变量(处理所有换肤)
 			watch(()=>theme.value,(newValue,oldValue)=>{
 				document.body.style.setProperty('--mainColor',newValue)
-				document.body.style.setProperty('--van-danger-color',newValue)
+				document.body.style.setProperty('--van-tabs-bottom-bar-color',newValue)
+				document.body.style.setProperty('--van-sidebar-selected-border-color',newValue)
 			})
 
 			return {
@@ -75,6 +77,9 @@
 		line-height: 58px;
 		color: white;
 		font-size: 18px;
+		width: 100%;
+		z-index: 9;
+		position: fixed;
 		.van-row,
 		.van-col {
 			height: 58px;

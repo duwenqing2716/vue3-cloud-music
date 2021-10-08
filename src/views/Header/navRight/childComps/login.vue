@@ -30,13 +30,13 @@
 			<regist @currentStep='addStep' @reLogin='subtractStep'></regist>
 		</div>
 		<div class="verify" v-show='currentStep === 2'>
-			<verify @backLogin='subtractStep' @onVerify='addStep' @onSuccess='onSuccessLogin'></verify>
+			<verify @reLogin='subtractStep' @onVerify='addStep' @onSuccess='onSuccessLogin' :currentStep='currentStep'></verify>
 		</div>
 		<div class="initProfile" v-show='currentStep === 3'>
 			<init-profile @backLogin='subtractStep' @onSuccess='onSuccessLogin'></init-profile>
 		</div>
 	</van-popup>
-	<van-popover v-model:show="loginDetail" class="info" :offset=[48,0] style="width: 300px" placement="bottom-end"
+	<van-popover v-model:show="loginDetail" v-if="loginDetail" class="info" :offset=[48,0] style="width: 300px" placement="bottom-end"
 	 :overlay='true' :overlay-style="{backgroundColor:'transparent',zIndex:'1'}" :show-arrow='false'>
 		<user-settings @onCloseProfile='onCloseProfile' @onClose='userSetting'></user-settings>
 	</van-popover>
@@ -76,7 +76,7 @@
 	} from '../../../../network/login.js'
 
 	import {
-		getItem,setItem
+		getItem,setItem,removeItem
 	} from '../../../../store/storage.js'
 	//vuex功能引入
 	import {
@@ -134,14 +134,16 @@
 
 			//下一步
 			const addStep = () => {
+				onClose()
 				currentStep.value++
 			}
 
 			//上一步
 			const subtractStep = (val) => {
+				onClose()
 				// 判断是否返回登录页
 				if (val === 0) {
-					currentStep.value = val
+					currentStep.value = 0
 				} else {
 					currentStep.value--
 				}
@@ -212,12 +214,8 @@
 			const onCloseProfile = () => {
 				if (store.state.isLogin) {
 					store.commit('changeLoginStatus', '')
-				}
-				//清空cookie，好像切换登录状态自动清空，操作多余
-				var keys = document.cookie.match(/[^ =;]+(?=\=)/g);
-				if (keys) {
-					for (var i = keys.length; i--;)
-						document.cookie = keys[i] + '=0;expires=' + new Date(0).toUTCString()
+					removeItem('cloudMusicStatus')
+					removeItem('cloudMusicUserId')
 				}
 				//关闭弹出层
 				loginDetail.value = false
@@ -312,6 +310,7 @@
 		img {
 			vertical-align: middle;
 			width: 35px;
+			height: 35px;
 			margin-right: 10px;
 			border-radius: 50%;
 		}

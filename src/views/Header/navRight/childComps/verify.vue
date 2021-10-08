@@ -28,7 +28,7 @@
 
 <script>
 	//vue功能引入
-	import { ref,reactive,onMounted,watch,getCurrentInstance,inject } from 'vue'
+	import { ref,reactive,onUpdated,watch,getCurrentInstance,inject } from 'vue'
 	//vuex功能引入
 	import{ useStore } from 'vuex'
 	//接口引入
@@ -39,6 +39,15 @@
 	import { setItem } from '../../../../store/storage.js'
 	export default {
 		name:'verify',
+		props:{
+			currentStep:{
+				type:Number,
+				required:true,
+				default(){
+					return 0
+				}
+			}
+		},
 		setup(props,context){
 			const store = useStore()
 			const internalInstance = getCurrentInstance();
@@ -58,7 +67,6 @@
 			
 			//注册或者修改密码操作
 			const onVerify = async() => {
-				
 				//判断是否输入无效内容 优化:通过正则进行提前判断，防止多次乱发请求
 				if(!verifyCode.value){
 					console.log('验证码为空')
@@ -115,22 +123,29 @@
 							message: '验证码输入有误!',
 							position: 'top'
 						})
+						isCountDownShow.value = false
 						return 
 					}
 			}
-			//挂载时开始倒计时,计时结束开启可重新发送验证码  功能未完善不应该挂载时开始倒计时
-			onMounted( () => {
-				isCountDownShow.value = true
+			//.currentStep=2时开启可重新发送验证码,因为后端有缓存机制不做多次发送拦截
+			watch(()=>props.currentStep,(newValue,oldValue)=>{
+				if(newValue == 2){
+					isCountDownShow.value = true
+				}else{
+					isCountDownShow.value = false
+				}
 			})
 			//重新发送验证码
 			const reCover = async() => {
 				const res = await sendSms(cellphone.value)
+				console.log(res)
 				if(res.code != 200){
 					let msg = res.message
 					Toast({
 						message: msg,
 						position: 'top'
 					})
+					return
 				}
 				isCountDownShow.value = true
 			}

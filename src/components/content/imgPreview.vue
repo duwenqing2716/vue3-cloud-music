@@ -92,9 +92,19 @@
 					forbidClick: true,
 					duration: 0
 				})		
-				//将图片裁剪数据放与formData中让后端自行设置获取
+				//转为blob对象,设置大小,以及图片类型
+				const onGetCroppedCanvas = () => {
+					return new Promise( resolve => {
+						cropper.value.getCroppedCanvas().toBlob( blob => {
+							// console.log(blob)
+							resolve(blob)
+						})
+					})
+				}
+				const file = await onGetCroppedCanvas()
+				//将图片裁剪数据放与formData中让后端自行获取
 			  const formData = new FormData()			
-			  let fileData = props.previewImage
+			  let fileData = file
 			  formData.append('imgFile', fileData)
 				
 				//此处为偏移数据设置,网易云后端默认自动获取formData.get('imgFile'),因此不多做计算
@@ -142,7 +152,7 @@
 					  aspectRatio: 1,
 					  preview: '.before,.biger',//预览区域
 					  background: false,//背景透明或者显示底色
-					  autoCropArea: 0.9,//选中区域大小
+					  autoCropArea: 0.95,//选中区域大小
 						cropBoxResizable: false,//选中部分不可改变大小
 					  zoomOnWheel: false,//不可使用鼠标滚轮
 					})

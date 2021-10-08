@@ -29,10 +29,7 @@ export default createStore({
 		changeLoginStatus(state,payload){
 			state.isLogin = payload
 			setItem('cloudMusicStatus',payload)
-			if(state.isLogin===''){
-				removeItem('cloudMusicStatus')
-				removeItem('cloudMusicUserId')
-			}
+			
 		},
   },
   getters: {

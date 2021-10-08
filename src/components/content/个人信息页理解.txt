@@ -127,8 +127,20 @@ const init = () => {
 }
 5. cropper.value中有各种属性可获取裁剪偏移数据,如:maxTop,maxLeft,top,left,width,height,
 naturalWidth,naturalHeight等等
-6. 将图片裁剪数据放与formData中让后端自行设置获取,formData中的imgFile为后端给的值
-例子:
+6. 两种情况前端处理发给后端存储,直接将数据将图片裁剪数据放与formData中让后端自行设置获取,formData中的imgFile为后端给的值
+例子:前端处理:
+const onGetCroppedCanvas = () => {
+	return new Promise( resolve => {
+		cropper.value.getCroppedCanvas().toBlob( blob => {
+			resolve(blob)
+		})
+	})
+}
+const file = await onGetCroppedCanvas()
+const formData = new FormData()			
+let fileData = file
+formData.append('imgFile', fileData)
+例子:后端处理:
 const formData = new FormData()			
 let fileData = props.previewImage
 formData.append('imgFile', fileData) 

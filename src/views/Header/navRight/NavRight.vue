@@ -12,7 +12,7 @@
 		</div>
 	</div>
 	<van-popover v-model:show="showPopover" v-if="showPopover" :overlay='true' :overlay-style="{backgroundColor:'transparent',zIndex:'1'}"  :show-arrow='false'
-	 :offset=[60,-35] placement="bottom-end" style="width: 400px">
+	 :offset=[90,-35] placement="bottom-end" style="width: 400px">
 		<van-tabs v-model:active="active">
 			<van-tab title="主题">
 				<van-grid :column-num="3" :border='false'>
@@ -40,7 +40,7 @@
 			</van-tab>
 		</van-tabs>
 	</van-popover>
-	<van-popover v-model:show="PopoverEmail" class="info" v-if="PopoverEmail" :offset=[148,-35] style="width: 400px" placement="bottom-end"  :overlay='true' :overlay-style="{backgroundColor:'transparent',zIndex:'1'}"  :show-arrow='false'>
+	<van-popover v-model:show="PopoverEmail" class="info" v-if="PopoverEmail" :offset=[182,-35] style="width: 420px;box-shadow:-2px 2px 10px lightgray" placement="bottom-end"  :overlay='true' :overlay-style="{backgroundColor:'transparent',zIndex:'1'}"  :show-arrow='false'>
 		<info-comment></info-comment>
 	</van-popover>
 </template>
@@ -196,6 +196,19 @@
 </script>
 
 <style lang="less" scoped="scoped">
+	.nav-right{
+		.vip{
+			z-index: 1;
+			cursor: pointer;
+			span{
+				display: inline-block;
+				width: 60px;
+				&:hover{
+					font-weight: bold;
+				}
+			}
+		}
+	}
 	.logo {
 		width: 100px;
 		height: 100px;
@@ -283,9 +296,9 @@
 				font-size: 28px;
 				margin: 0 8px;
 				cursor: pointer;
-
+        opacity: 0.8;
 				&:hover {
-					font-weight: bold;
+					opacity: 1;
 				}
 			}
 		}

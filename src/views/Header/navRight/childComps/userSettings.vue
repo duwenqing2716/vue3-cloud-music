@@ -15,8 +15,8 @@
 					<span>粉丝</span>
 				</div>
 			</div>
-			<div class="signIn-bottom">
-				<button><i class="iconfont"></i>签到</button>
+			<div class="signIn-bottom" @click="onSign">
+				<button><i class="iconfont"></i>{{!signStatus?'签到':'已签到'}}</button>
 			</div>
 		</div>
 		<van-cell value="未订购" is-link>
@@ -25,7 +25,10 @@
 		    <view class="van-cell-text">会员中心</view>
 		  </template>
 		</van-cell>
-		<van-cell value="Lv.7" is-link>
+		<van-cell is-link>
+			<template #value>
+				Lv.{{level}}
+			</template>
 		  <template #title>
 				<i class="iconfont icon-dengji"></i>
 		    <view class="van-cell-text">等级</view>
@@ -44,7 +47,7 @@
 		    <view class="van-cell-text">个人信息设置</view>
 		  </template>
 		</van-cell>
-		<van-cell value="" is-link>
+		<van-cell value="" is-link @click='userBind'>
 		  <template #title>
 				<i class="iconfont icon-bangding"></i>
 		    <view class="van-cell-text">绑定社交账号</view>
@@ -73,7 +76,8 @@
 	//vue相关功能引入
 	import { ref,reactive,inject,onMounted,computed } from 'vue'
 	//接口引入
-	import { getUserEvents,getUserFollows,getUserFolloweds,userLogout } from '../../../../network/profile.js'
+	import { getUserEvents,getUserFollows,getUserFolloweds,userLogout,getUserSignin } from '../../../../network/profile.js'
+	import { getUserLevel } from '../../../../network/useDetail.js'
 	//本地存储移除功能引入
 	import { removeItem } from '../../../../store/storage.js'
 	//由于setup中不存在this,因此在setup中使用路由必须先声明
@@ -85,6 +89,9 @@
 			const store = useStore()
 			
 			const uid = ref(null)
+			const level = ref (0)
+			//挂载时获取后端的签到状态
+			const signStatus = ref(false)
 			
 			const state = reactive({
 				follow:{},
@@ -94,13 +101,31 @@
 			//退出登录
 			const logout = async() => {
 				const res = await userLogout()
-				// console.log(store.state.isLogin)
-				// console.log(res)
 				if(res.code!=200){
 					Toast.fail('退出登录失败')
 				}else{
+					//清空cookie，好像切换登录状态自动清空，操作多余
+					var keys = document.cookie.match(/[^ =;]+(?=\=)/g);
+					if (keys) {
+						for (var i = keys.length; i--;)
+							document.cookie = keys[i] + '=0;expires=' + new Date(0).toUTCString()
+					}
 					context.emit('onCloseProfile')
 					router.replace({path:'/home'})
+				}
+			}
+			//签到功能 未完善 找不到后端记录签到的数据
+			const onSign = async() => {
+				const res = await getUserSignin(1)
+				if(res.code === 200){
+					Toast({
+						message:'签到成功！'+res.point+'点经验'
+					})
+					signStatus.value = true
+				}else{
+					Toast({
+						message:'签到重复!'
+					})
 				}
 			}
 			//路由跳转用户设置页面
@@ -108,9 +133,16 @@
 				router.push({path:'/home/profile'})
 				context.emit('onClose')
 			}
+			//路由跳转用户绑定页面
+			const userBind = () => {
+				router.push({path:'/home/binding'})
+				context.emit('onClose')
+			}
 			//挂载时获取用户信息
 			onMounted(async()=>{
 				uid.value = store.getters.getUserId
+				let levels = await getUserLevel()
+				level.value = levels.data.level
 				const res = await getUserEvents({uid:uid.value})
 				state.events = res.size
 				const data = await getUserFollows({uid:uid.value}) 
@@ -122,7 +154,11 @@
 			return{
 				state,
 				logout,
-				userSet
+				userSet,
+				userBind,
+				level,
+				onSign,
+				signStatus
 			}
 		}
 	}
