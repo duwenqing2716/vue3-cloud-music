@@ -26,8 +26,10 @@
 						<i class="iconfont icon-tianjia"></i>
 						</div>
 						</span>
-					<span class='other-icon'>
-						<i class="iconfont icon-shoucang"></i>收藏({{songsDetails.subscribedCount>99999?Math.floor(songsDetails.subscribedCount/10000)+'万':songsDetails.subscribedCount}})
+					<span class='other-icon' @click="onCollect">
+						<i class="iconfont icon-shoucang" v-if="!subscribed"></i>
+						<i class="iconfont icon-yishoucang" v-else></i>
+						{{subscribed?'已收藏':'收藏'}}({{songsDetails.subscribedCount>99999?Math.floor(songsDetails.subscribedCount/10000)+'万':songsDetails.subscribedCount}})
 					</span>
 					<span class='other-icon'>
 						<i class="iconfont icon-bangding"></i>分享({{songsDetails.shareCount>99999?Math.floor(songsDetails.shareCount/10000)+'万':songsDetails.shareCount}})
@@ -52,18 +54,18 @@
 	  <div class="songs-list">
 			<div class="list-nav">
 				<div class="nav-left">
-					<span class="active">歌曲列表</span>
-					<span>评论({{songsDetails.commentCount}})</span>
-					<span>收藏者</span>
+					<span :class="currentIndex==1?'active':''" @click='onActive(1)'>歌曲列表</span>
+					<span :class="currentIndex==2?'active':''" @click='onActive(2)'>评论({{songsDetails.commentCount}})</span>
+					<span :class="currentIndex==3?'active':''" @click='onActive(3)'>收藏者</span>
 				</div>
-				<div class="nav-right">
+				<div class="nav-right" v-show="currentIndex==1">
 					<input type="text" placeholder="搜索歌单音乐" v-model="search">
 					<i class="iconfont icon-sousuo" v-if="search==''"></i>
 					<i class="iconfont icon-guanbi" style="font-size: 14px;display: block;line-height: 20px;" v-else @click="onCancel"></i>
 				</div>
 			</div>
 		</div>
-		<div class="row-songs-list">
+		<div class="row-songs-list" v-show="currentIndex==1">
 			<van-row class="row-songs-list-nav">
 			  <van-col span="4"></van-col>
 			  <van-col span="8" class='row-songs-list-content'>音乐标题</van-col>
@@ -74,8 +76,8 @@
 			<van-row class="row-songs-list-details" :class="index%2?'':'differ'" v-for="(item,index) in listSongs" :key='item.id' v-if="search === ''">
 			  <van-col class="row-songs-list-num" span="4">
 					<span>{{index+1<10?'0'+(index+1):index+1}}</span>
-					<i class="iconfont icon-xihuan2" style="color: #EC4141;" v-if="compare(item)" @click='onLike(item.id,true)'></i>
-					<i class="iconfont icon-xihuan1" v-else @click='onLike(item.id,false)'></i>
+					<i class="iconfont icon-xihuan2" style="color: #EC4141;" v-if="isCompare[index]" @click='onLike(item.id,true,index,0)'></i>
+					<i class="iconfont icon-xihuan1" v-else @click='onLike(item.id,false,index,0)'></i>
 					<i class="iconfont icon-download"></i>
 				</van-col>
 			  <van-col span="8" class="row-songs-list-name"  style="color: black;">
@@ -90,38 +92,46 @@
 			<van-row class="row-songs-list-details" :class="index%2?'':'differ'" v-for="(item,index) in searchLists" :key='item.id' v-else-if="searchLists.length!=0">
 			  <van-col class="row-songs-list-num" span="4">
 					<span>{{index+1<10?'0'+(index+1):index+1}}</span>
-					<i class="iconfont icon-xihuan2" style="color: #EC4141;" v-if="compare(item)" @click='onLike(item.id,true)'></i>
-					<i class="iconfont icon-xihuan1" v-else @click='onLike(item.id,false)'></i>
+					<i class="iconfont icon-xihuan2" style="color: #EC4141;" v-if="isCompareShow[index]" @click='onLike(item.id,true,index,1)'></i>
+					<i class="iconfont icon-xihuan1" v-else @click='onLike(item.id,false,index,1)'></i>
 					<i class="iconfont icon-download"></i>
 				</van-col>
 			  <van-col span="8" class="row-songs-list-name"  style="color: black;">
-					<span class="list-row">{{item.name}}</span>
+					<span class="list-row" v-html="highlight(item.name)"></span>
 					<span class="SQorMv">SQ</span>
 					<span class="SQorMv">MV</span>
 				</van-col>
-			  <van-col span="4" class="row-songs-list-name">{{item.ar[0].name===''?'未知歌手':item.ar[0].name}}</van-col>
-				<van-col span="6" class="row-songs-list-name">{{item.al.name===''?'未知专辑':item.al.name}}</van-col>
+			  <van-col span="4" class="row-songs-list-name" v-html="item.ar[0].name===''?'未知歌手':highlight(item.ar[0].name)"></van-col>
+				<van-col span="6" class="row-songs-list-name" v-html="item.al.name===''?'未知专辑':highlight(item.al.name)"></van-col>
 				<van-col span="2" class="row-songs-list-name">{{'0'+new Date(item.dt).getMinutes()+':'+(new Date(item.dt).getSeconds()<10?'0'+new Date(item.dt).getSeconds():new Date(item.dt).getSeconds())}}</van-col>
 			</van-row>
 			<div v-else-if="search !='' && searchLists.length === 0">
 				<span style="margin-top: 40px;display: block;" v-show="text!=''">未能找到与‘{{text}}’相关的任何音乐</span>
 			</div>
 		</div>
+	  <div class="comment-list" v-if="currentIndex==2" style='width: 90%;margin-left: 25px;margin-top: 40px;'>
+			<comment-lists :listId='id'></comment-lists>
+		</div>
+		<div class="subscribed-list" v-show="currentIndex==3">
+			
+		</div>
 	</div>
 </template>
 
 <script>
 	//接口引入
-	import { dynamicInfo,detailInfo,detailSongs,likeSongs,likeSongsList } from '../../network/songs.js'
+	import { dynamicInfo,detailInfo,detailSongs,likeSongs,likeSongsList,userSubscribe,allSubscribe } from '../../network/songs.js'
 	import { getUserPlaylist } from '../../network/profile.js'
 	//路由功能引入
 	import { useRouter } from 'vue-router'
 	//vuex功能引入
 	import{ useStore } from 'vuex'
 	//vue功能引入
-	import { onMounted,ref,onUpdated,nextTick,watch,reactive } from 'vue'
+	import { onMounted,ref,onUpdated,nextTick,watch,reactive,computed } from 'vue'
 	// 组件库引入
-	import { Toast } from 'vant'
+	import { Toast,Dialog } from 'vant'
+	//组件引入
+	import commentLists from './commentLists.vue'
 	export default{
 		name:'songDetail',
 		props:{
@@ -133,6 +143,10 @@
 				}
 			}
 		},
+		components:{
+			commentLists,
+		},
+		//缺失功能歌曲排序,功能交错复杂,以后有时间在做
 		setup(props,context){
 			const store = useStore()
 			const router = useRouter(); //实例化路由
@@ -150,8 +164,12 @@
 			const text = ref('');
       const uid = ref(null);
 			const likes = ref([]);
-
-			//保存时间进行防抖操作
+			const subscribed = ref(false);
+			const currentIndex = ref(1);
+			const isCompare = ref([]);
+			const isCompareShow = ref([]);
+			//保存时间进行防抖操作 好像能用同一个
+			const time = ref(null);
 			const state = reactive({
 				timer:null
 			})
@@ -159,18 +177,53 @@
 			const onTransform = () => {
 				spread.value = !spread.value
 			}
+			//取消收藏与收藏功能 无需防抖
+			const onCollect = async() => {
+				//是收藏状态
+				if(subscribed.value){
+					Dialog.confirm({
+						message: '确定删除取消收藏吗?',
+					})
+					.then(async() => {
+						const res = await userSubscribe(2,props.id)
+						if(res.code == 200){
+							subscribed.value = !subscribed.value
+							Toast('取消收藏成功')
+						}
+					})
+					.catch(() => {
+					});
+				}else{
+					//非收藏状态
+					const res = await userSubscribe(1,props.id)
+					subscribed.value = !subscribed.value
+					Toast('收藏成功')
+				}
+			}
+			//切换歌曲列表 评论 收藏者页面
+			const onActive = (val) => {
+				currentIndex.value = val
+			}
 			//搜索歌曲取消功能 清空所有数据 初始化
 			const onCancel = () => {
 				search.value = ''
 				text.value = ''
 				searchLists.value = []
 			}
-			//判断歌曲是否为用户喜欢的歌曲 设计功能有所缺陷
-			const compare = (val) => {
-				return likes.value.some(item=>item==val.id)
+			//更新页面数据,将喜欢的音乐与点赞信息真正存于后端
+			const getReCompare = async(id,like,timerstamp) => {
+				const res = await likeSongs({id:id,like:!like,timerstamp:timerstamp})
+				if(res.code === 200){
+					likeSongsList(uid.value,Date.now()).then(res => {
+						if(res.code === 200){
+							likes.value = res.ids
+							Toast.clear()
+						}
+					})
+				}
 			}
 			//点击添加或者取消喜欢音乐
-			const onLike = async(id,like) => {
+			const onLike = async(id,like,index,status) => {
 				// 判断登录状态
 				if(store.state.isLogin){
 				// 获取用户uid
@@ -178,51 +231,74 @@
 				let message = ''
 				if(like){
 				  message='取消喜欢成功'
+					//判断是否为搜索时渲染
+					if(!status){
+						isCompare.value[index]=false
+					}else{
+						isCompareShow.value[index]=false
+					}
+					
 				}else{
 				  message='已添加到我喜欢的音乐'
+					//判断是否为搜索时渲染
+					if(!status){
+						isCompare.value[index]=true
+					}else{
+						isCompareShow.value[index]=true
+					}
+					
 				}
-				Toast.loading({
-				  duration: 0, // 持续时间，0表示持续展示不停止
-				  forbidClick: true, // 是否禁止背景点击
-				  message: '加载中...' // 提示消息
+				Toast({
+					message:message
 				})
-				//功能缺陷 性能差 bug:当用户快速点击时将未能及时响应 
-				//页面数据刷新慢
-				const res = await likeSongs({id:id,like:!like})
-				if(res.code === 200){
-					Toast({
-						message:message
-					})
-					likeSongsList(uid.value,Date.now()).then(res => {
-						if(res.code === 200){
-							// console.log(res.ids)
-							likes.value = res.ids
-							Toast.clear()
-						}
-					})
+				//当用户快速点击时将未能及时快速响应 (已修复)几乎不会出现高频点击报错，但是6次后依然出现问题 后端设置问题(前端无力)
+				if(time.value != null){
+					clearTimeout(time.value)
 				}
+				
+				time.value = setTimeout(()=>{
+					getReCompare(id,like,Date.now())
+				},500)
+				
 				}else{
 					Toast({
 						message:'请登录后再操作(未做保存本地功能)'
 					})
 				}
 			}
-			//歌单搜索功能实现 功能未完善 搜索关键词高亮
+			//将搜索关键字高亮
+			const highlight = (str) => {
+				const reg = new RegExp(search.value,'gim')
+				return str.replaceAll(reg,`<span style='color:var(--mainColor)'>${search.value}</span>`)
+			}
+			//歌单搜索功能实现
 			const searchInfo = (newValue) => {
           text.value = ''
 					searchLists.value = []
+					isCompareShow.value = []
+					//对比关键词 优化:关键词不分大小写 str.toUpperCase() str转化成大写 str.toLowerCase() str转成小写 
+          //将所有都转化为同一个写法 太麻烦了不做
 					listSongs.value.forEach((item,index) => {
 						if(item.name.indexOf(newValue)!=-1 || item.al.name.indexOf(newValue)!=-1 || item.ar[0].name.indexOf(newValue)!=-1){
-							// console.log(index,'搜索有结果')
 							searchLists.value.push(listSongs.value[index]) 
 						}
-				  },500)
+				  })
+					//对比搜索时的喜欢音乐
+					searchLists.value.forEach(item=>{
+					  isCompareShow.value.push(likes.value.some(items=>items==item.id))	
+					})
 					text.value = newValue
-					// console.log(searchLists.value,text.value)
 			}
 			//监听搜索输入框并进行输入防抖(立即执行)
 			watch(search,(newValue,oldValue)=>{
-				if(newValue=='') return
+				//当输入框为空时重新对比喜欢音乐
+				if(newValue==''){
+					isCompare.value = []
+					listSongs.value.forEach(item=>{
+					  isCompare.value.push(likes.value.some(items=>items==item.id))
+					})
+					return 
+				}
 				if (state.timer) {
 					clearTimeout(state.timer)
 				}
@@ -233,12 +309,10 @@
 			//判断登录状态 获取用户喜欢的歌曲列表(立即执行)
 			watch(()=> store.state.isLogin,(newValue,oldValue)=>{
 				if(store.state.isLogin){
+					//登录状态获取喜欢的音乐列表 此处建议获取到vuex中多处能使用
 					uid.value = store.getters.getUserId
 					likeSongsList(uid.value,Date.now()).then(res => {
-						if(res.code === 200){
-							// console.log(res.ids)
 							likes.value = res.ids
-						}
 					})
 				}
 			},{immediate:true})
@@ -252,31 +326,35 @@
 				//async不加await 将出现promise类型 获取歌单页面详细数据
 				const res = await detailInfo(props.id)
 				songsDetails.value = res.playlist
-				// console.log(res)
+				subscribed.value = res.playlist.subscribed
 				let date = new Date(res.playlist.createTime)
 				createTime.value = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()
 				nickname.value = res.playlist.creator.nickname
 				image.value = res.playlist.creator.avatarUrl
 				tags.value = res.playlist.tags.join('/')
+				//获取完整歌单Id
 				trackId.value = res.playlist.trackIds
-				
-				// 遍历所有歌曲 性能差 当歌单中有多首歌时请求时间将会很长 用户体验差
-				let list = [];
-				let i=0;
-				trackId.value.forEach((item)=>{
-					detailSongs(item.id).then(res => {
-						if(res.code === 200){
-							list.push(...res.songs)
-							i++
-						}
-						//判断是否请求完全部歌曲
-						if(i === trackId.value.length){
-								listSongs.value = list
-								// console.log(listSongs.value,'请求完全部')
-								Toast.clear()
-						}
+				// 判断登录状态
+				if(!store.state.isLogin){
+					//未登录 获取少量歌曲
+					listSongs.value = res.playlist.tracks	
+					Toast('登录获取更多音乐！')
+				}else{
+					//登录 获取完整歌单Id
+					let list =[];
+					isCompare.value = []
+					trackId.value.forEach(item=> list.push(item.id))
+					detailSongs(list.join(',')).then(res => {
+						//歌曲数据
+					  listSongs.value =res.songs
+						//喜欢音乐对比
+						listSongs.value.forEach(item=>{
+							isCompare.value.push(likes.value.some(items=>items==item.id))
+						})
+						// console.log(isCompare.value)
+						Toast.clear()
 					})
-				})
+				}
 			})
 			
 			
@@ -296,8 +374,16 @@
 				state,
 				text,
 				likes,
-				compare,
-				onLike
+				onLike,
+				onCollect,
+				subscribed,
+				onActive,
+				currentIndex,
+				isCompare,
+				time,
+				getReCompare,
+				highlight,
+				isCompareShow
 			}
 		}
 	}
@@ -307,7 +393,6 @@
   .songsDetail {
   	width: 80%;
   	margin-left: calc(21%);
-  	// height: 600px;
   	position: absolute;
   	margin-top: 60px;
 		.songs-nav{
@@ -412,10 +497,20 @@
 						margin-right: 40px;
 						cursor: pointer;
 						position: relative;
-						.icon-shoucang,.icon-bangding,.icon-download{
+						.icon-bangding,.icon-download,{
 							margin-right: 10px;
 							font-size: 24px;
 							font-weight: bold;
+							vertical-align:middle;
+						}
+						.icon-shoucang{
+							margin-right: 10px;
+							font-size: 22px;
+							font-weight: bold;
+							vertical-align:middle;
+						}
+						.icon-yishoucang{
+							font-size: 20px;
 							vertical-align:middle;
 						}
 					}

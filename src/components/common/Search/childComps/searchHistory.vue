@@ -43,14 +43,14 @@
 		setup(props,context){
 			const onDeleteAll = () => {
 				Dialog.confirm({
-						message: '确定删除历史记录吗',
-					})
-					.then(() => {
-						//发射事件删除所有历史搜索
-						context.emit('onDeleteAll')
-					})
-					.catch(() => {
-					});
+					message: '确定删除历史记录吗',
+				})
+				.then(() => {
+					//发射事件删除所有历史搜索
+					context.emit('onDeleteAll')
+				})
+				.catch(() => {
+				});
 			}
 			//发射事件删除单个历史搜索
 			const removeSongs = (index) => {
