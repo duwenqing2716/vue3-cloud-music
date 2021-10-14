@@ -108,17 +108,10 @@ export const likeComment = (id,cid,t,type,timerstamp) => {
 	})
 }
 //可发送评论或者删除评论 t:1 发送, 2 回复
-export const sendComment = (t,type,id,content,commentId,timerstamp) => {
+export const sendComment = params => {
 	return request({
 		url:'/comment',
-		params:{
-			t,
-			type,
-			id,
-			content,
-			commentId,
-			timerstamp
-		}
+		params
 	})
 }
 //传入资源 parentCommentId 和资源类型 type和资源id 参数, 可获得该资源的歌曲楼层评论

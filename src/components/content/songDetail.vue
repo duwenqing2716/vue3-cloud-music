@@ -55,7 +55,7 @@
 			<div class="list-nav">
 				<div class="nav-left">
 					<span :class="currentIndex==1?'active':''" @click='onActive(1)'>歌曲列表</span>
-					<span :class="currentIndex==2?'active':''" @click='onActive(2)'>评论({{songsDetails.commentCount}})</span>
+					<span :class="currentIndex==2?'active':''" @click='onActive(2)'>评论({{commentCount}})</span>
 					<span :class="currentIndex==3?'active':''" @click='onActive(3)'>收藏者</span>
 				</div>
 				<div class="nav-right" v-show="currentIndex==1">
@@ -110,7 +110,7 @@
 			</div>
 		</div>
 	  <div class="comment-list" v-if="currentIndex==2" style='width: 90%;margin-left: 25px;margin-top: 40px;'>
-			<comment-lists :listId='id'></comment-lists>
+			<comment-lists :listId='id' @changeNum='changeNum'></comment-lists>
 		</div>
 		<div class="subscribed-list" v-show="currentIndex==3">
 			
@@ -168,6 +168,7 @@
 			const currentIndex = ref(1);
 			const isCompare = ref([]);
 			const isCompareShow = ref([]);
+			const commentCount = ref(0);
 			//保存时间进行防抖操作 好像能用同一个
 			const time = ref(null);
 			const state = reactive({
@@ -209,6 +210,10 @@
 				search.value = ''
 				text.value = ''
 				searchLists.value = []
+			}
+			
+			const changeNum = (num) => {
+				commentCount.value = num
 			}
 			//更新页面数据,将喜欢的音乐与点赞信息真正存于后端
 			const getReCompare = async(id,like,timerstamp) => {
@@ -326,6 +331,7 @@
 				//async不加await 将出现promise类型 获取歌单页面详细数据
 				const res = await detailInfo(props.id)
 				songsDetails.value = res.playlist
+				commentCount.value = res.playlist.commentCount
 				subscribed.value = res.playlist.subscribed
 				let date = new Date(res.playlist.createTime)
 				createTime.value = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()
@@ -383,7 +389,9 @@
 				time,
 				getReCompare,
 				highlight,
-				isCompareShow
+				isCompareShow,
+				changeNum,
+				commentCount
 			}
 		}
 	}

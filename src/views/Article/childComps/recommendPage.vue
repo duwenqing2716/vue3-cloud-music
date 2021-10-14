@@ -420,7 +420,7 @@
 					margin-top: 10px;
 					font-size: 14px;
 					display: block;
-					height: 50px;
+					height: 60px;
 					align-self: flex-start;
 					overflow: hidden;
 					text-overflow: ellipsis;

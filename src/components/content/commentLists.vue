@@ -12,10 +12,11 @@
 				ref='input'
       />
     </van-cell-group>
+		<span style="position: absolute;left: 15px;margin-top: 20px;cursor: pointer;" @click="OnlyReplay">只回复该歌单</span>
 		<button class="comment-btn" @click="sendComt">评论</button>
-		<div class="comment-content">
+		<div class="comment-content" v-show="currentPage == 1" v-if="commentList">
 			<span class="comment-content-title">精彩评论</span>
-			<div class="content-list" v-for="(item,index) in commentList">
+			<div class="content-list" v-for="(item,index) in commentList" @contextmenu.prevent="onDelete(item)" >
 				<div>
 					<img :src="item.user.avatarUrl" alt="">
 				</div>
@@ -26,7 +27,7 @@
 								<span>{{item.user.nickname}}: </span>
 							  {{item.content}}
 							</p>
-							<p v-if="item.parentCommentId" style="width: 100%;height: 40px;background-color: rgba(125,125,125,0.1);border-radius: 8px;line-height: 40px;padding-left: 10px;"><span>@{{othersName[item.commentId]}}: </span>{{othersContent[item.commentId]}}</p>
+							<p v-if="item.parentCommentId" style="width: 100%;height: 40px;background-color: rgba(125,125,125,0.1);border-radius: 8px;line-height: 40px;padding-left: 10px;"><span>@{{othersName[item.parentCommentId]}}: </span>{{othersContent[item.parentCommentId]}}</p>
 						</template>
 						<template #label>
 							<span>{{compare(item.time)}}</span>
@@ -37,14 +38,14 @@
 					<span class="report">举报</span>
 					<i class="iconfont icon-dianzan" id="zan" @click="onLike(item.commentId,1,index,0)" v-show="!item.liked">({{item.likedCount}})</i>
 					<i class="iconfont icon-dianzan_kuai" id="zan" @click="onLike(item.commentId,0,index,0)" v-show="item.liked" style='color:#EC4141'>({{item.likedCount}})</i>
-					<i class="iconfont icon-zhuanfa" @click="Toast('功能未开发')"></i>
+					<i class="iconfont icon-zhuanfa" @click="onTransmit"></i>
 					<i class="iconfont icon-pinglun" @click="onComment(item)"></i>
 				</div>
 			</div>
 		</div>
-		<div class="comment-content" style="margin-top: 40px;">
+		<div class="comment-content" style="margin-top: 70px;">
 			<span class="comment-content-title">最新评论({{totalNums}})</span>
-			<div class="content-list" v-for="(item,index) in newList">
+			<div class="content-list" v-for="(item,index) in isShowNew" @contextmenu.prevent="onDelete(item)">
 				<div>
 					<img :src="item.user.avatarUrl" alt="">
 				</div>
@@ -55,7 +56,8 @@
 								<span>{{item.user.nickname}}: </span>
 							  {{item.content}}
 							</p>
-							<p v-if="item.parentCommentId" style="width: 100%;background-color: rgba(125,125,125,0.1);border-radius: 8px;line-height: 40px;padding-left: 10px;"><span>@{{othersName[item.commentId]}}: </span>{{othersContent[item.commentId]}}</p>
+							<p v-if="item.parentCommentId" style="width: 100%;background-color: rgba(125,125,125,0.1);border-radius: 8px;line-height: 40px;padding-left: 10px;"><span>@{{othersName[item.parentCommentId]}}: </span>{{othersContent[item.parentCommentId]}}</p>
+						  <p v-if="item.beRepliedUser" style="width: 100%;background-color: rgba(125,125,125,0.1);border-radius: 8px;line-height: 40px;padding-left: 10px;"><span>@{{item.beRepliedUser.nickname}}: </span>{{othersContent[item.commentId]}}</p>
 						</template>
 						<template #label>
 							<span>{{compare(item.time)}}</span>
@@ -64,12 +66,15 @@
 				</div>
 				<div>
 					<span class="report">举报</span>
-					<i class="iconfont icon-dianzan" @click="onLike(item.commentId,1,index,1)" v-show="!item.liked">({{item.likedCount}})</i>
+					<i class="iconfont icon-dianzan" @click="onLike(item.commentId,1,index,1)" v-show="!item.liked">({{item.likedCount?item.likedCount:item.likedCount=0}})</i>
 					<i class="iconfont icon-dianzan_kuai" @click="onLike(item.commentId,0,index,1)" v-show="item.liked" style='color:#EC4141'>({{item.likedCount}})</i>
-					<i class="iconfont icon-zhuanfa" @click="Toast('功能未开发')"></i>
+					<i class="iconfont icon-zhuanfa" @click="onTransmit"></i>
 					<i class="iconfont icon-pinglun" @click="onComment(item)"></i>
 				</div>
 			</div>
+		</div>
+		<div style='width: 55%;margin: 150px auto 200px;'>
+			<van-pagination v-model="currentPage" :total-items="124" :show-page-size="8" force-ellipses @change='changePage'/>
 		</div>
 	</div>
 </template>
@@ -80,7 +85,7 @@
 	//vuex功能引入
 	import{ useStore } from 'vuex'
 	import { debounce } from '../../common/debounce.js'
-	import { Toast } from 'vant'
+	import { Toast,Dialog } from 'vant'
 	export default {
 		name:'commentLists',
 		props:{
@@ -109,10 +114,19 @@
 			const replay = ref('请输入您的评论内容!');
 			const input = ref(null);
 			const commentId = ref(null);
+			const timeMount = ref(null);
+			const userSelfFloor = ref('');
+			const currentPage = ref(1);
+			const isShowNew = ref([]);
+			const numsList = ref([]);
+			
 			//日期格式化
 			const compare = (val) => {
 				const date =new Date(val)
-				return date.getFullYear()+'年'+(date.getMonth()+1)+'月'+date.getDate()+'日 '+date.getHours()+':'+date.getMinutes()
+				if(val-timeMount.value>0){
+					return '刚刚'
+				}
+				return date.getFullYear()+'年'+(date.getMonth()+1)+'月'+date.getDate()+'日 '+date.getHours()+':'+(date.getMinutes()<10?'0'+date.getMinutes():date.getMinutes())
 			}
 			//发送点赞功能请求
 			const getLikeComment = async(id,val,status,num,time) => {
@@ -140,11 +154,11 @@
 					
 				if(type){
 					if(status==1){
-						newList.value[index].liked = true
-						newList.value[index].likedCount++
+						isShowNew.value[index].liked = true
+						isShowNew.value[index].likedCount++
 					}else{
-						newList.value[index].liked = false
-						newList.value[index].likedCount--
+						isShowNew.value[index].liked = false
+						isShowNew.value[index].likedCount--
 					}
 				}else{
 					if(status==1){
@@ -161,31 +175,130 @@
 					})
 				}
 			}
-			//发送评论 
+			//评论初始化
+			const OnlyReplay = () => {
+				commentId.value = ''
+				replay.value = '请输入您的评论内容!'
+				message.value = ''
+				input.value.focus()
+			}
+			//发送评论  还需判断是否登录
 			const sendComt = async() => {
+				// 判断登录状态
+				if(store.state.isLogin){
+				let t = '';
+				//判断发送还是回复
 				if(commentId.value){
 					t=2
 				}else{
 					t=1
 				}
-				// const res = await sendComment(t,2,props.listId,message.value,commentId.value,Date.now())
-				console.log(res)
+				if(!message.value){
+					Toast('评论不能为空')
+					return
+				}
+				//此处请求最好用params自定义
+				const res = await sendComment({t:t,type:2,id:props.listId,content:message.value,commentId:commentId.value,timerstamp:Date.now()})
+				//将自己的评论放在page1的顶层
+				newList.value[0].list.unshift(res.comment)
+				if(commentId.value){
+					const { data } = await parentComment(commentId.value,props.listId,2,1,Date.now())
+					othersContent.value[res.comment.commentId] = data.ownerComment.content
+				}
+				OnlyReplay()
+				totalNums.value++
+				context.emit('changeNum',totalNums.value)
+				}else{
+					Toast({
+						message:'请登录后再操作！'
+					})
+				}
 			}
 			//点击评论按钮
 			const onComment = (val) => {
 				commentId.value = ''
 				replay.value = '回复 '+val.user.nickname+' :'
-				input.value.focus()
+				toTop()
 				commentId.value = val.commentId
 			}
-			//获取回复楼层数据
-			const getParentCommentId = async(val,item) => {
-				const { data } = await parentComment(val,props.listId,2,1,Date.now())
-				othersContent.value[item.commentId] = data.ownerComment.content
-				othersName.value[item.commentId] = data.ownerComment.user.nickname
+			//回滚到顶
+			const toTop = () => {
+				let timeTop = setInterval(()=>{
+					if(document.documentElement.scrollTop<=0){
+						clearInterval(timeTop)
+						input.value.focus()
+					}
+					document.documentElement.scrollTop-=60
+				},10)		
+			}
+			//获取回复楼层数据 减少同类数据多次请求 已优化 进一步优化方式:判断isShowNew.value.commentId是否==val将其content取出并缓存进一步减少请求量 (因为是同时加载所以获取数据不全,做出优化效果很麻烦)
+			const getParentCommentId = async(val) => {
+				if(!numsList.value.some(item=>item == val)){
+					numsList.value.push(val)
+					const { data } = await parentComment(val,props.listId,2,1,Date.now())
+					othersContent.value[val] = data.ownerComment.content
+					othersName.value[val] = data.ownerComment.user.nickname
+				}
+			}
+			//分页功能
+			const changePage = async() => {
+				isShowNew.value = []
+				//判断是否需要加载新评论 大幅减少请求数量
+				let isSome = newList.value.find(item =>item.page == currentPage.value)
+				if(isSome){
+					//加载缓存数据
+					isShowNew.value = isSome.list
+				}else{
+					//发送新请求
+					getNewData(currentPage.value)
+				}
+			}
+			//请求新数据以及回复楼层
+			const getNewData = async(val) => {
+				let listDetail = {}
+				const resData = await playlistComment(props.listId,30,val*30,Date.now())
+				listDetail.page = currentPage.value
+				listDetail.list = resData.comments
+				newList.value.push(listDetail)
+				newList.value.filter(item=>{
+					if(item.page == currentPage.value){
+						isShowNew.value = item.list
+					}
+				})
+				isShowNew.value.filter(item=>{
+					if(item.parentCommentId) getParentCommentId(item.parentCommentId,item)
+				})
+				totalNums.value = resData.total
+				console.log(isShowNew.value)
+			}
+			//删除自己的评论(鼠标右键点击事件) 判断是否为自己 左击时间将与点赞功能冲突 功能未完善
+			const onDelete = (item) => {
+				if(item.user.userId == store.state.uid){
+					Dialog.confirm({
+						message: '确定删除你的评论吗',
+					})
+					.then(async() => {
+						//发送请求删除自己的评论 
+						const res = await sendComment({t:0,type:2,id:props.listId,commentId:item.commentId,timerstamp:Date.now()})
+						if(res.code == 200) Toast('删除成功')
+						//找到isShowNew.value中的评论并删除
+						isShowNew.value.filter((val,index)=>{
+							if(val.commentId==item.commentId){
+								isShowNew.value.splice(index,1)
+							}
+						})
+					})
+					.catch(() => {
+					});
+				}
+			}
+			//转发功能未开发
+			const onTransmit = () => {
+				Toast('功能未开发!')
 			}
       //挂载时
 			onMounted(async()=>{
+				timeMount.value = Date.now()
 				input.value.focus()
 				//热评数据
 				const res = await hotComment(props.listId,2,10,1,Date.now())
@@ -194,12 +307,7 @@
 					if(item.parentCommentId) getParentCommentId(item.parentCommentId,item)
 				})
 				//新评数据
-				const resData = await playlistComment(props.listId,30,1,Date.now())
-				newList.value = resData.comments
-				newList.value.filter(item=>{
-					if(item.parentCommentId) getParentCommentId(item.parentCommentId,item)
-				})
-				totalNums.value = resData.total
+				getNewData(0)
 			})
 			return{
 				message,
@@ -219,7 +327,18 @@
 				onComment,
 				replay,
 				input,
-				sendComt
+				sendComt,
+				OnlyReplay,
+				timeMount,
+				userSelfFloor,
+				toTop,
+				currentPage,
+				changePage,
+				isShowNew,
+				getNewData,
+				onTransmit,
+				numsList,
+				onDelete
 			}
 		}
 	}
@@ -260,6 +379,7 @@
 				align-items: center;
 				border-bottom: 1px solid darkgray;
 				position: relative;
+				cursor: pointer;
 				&:hover .report{
 					opacity: 0.8;
 				}
