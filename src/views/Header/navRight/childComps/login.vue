@@ -1,9 +1,14 @@
 <template>
-	<div class="login" @click="$store.getters.getLoginStatus?userSetting():showPopup()">
-		<div>
-		<img :src=" $store.getters.getLoginStatus? $store.getters.getAvatar : '/img/test.b66d0610.5c288444.jpg' " alt="" id="login">
+	<div class="login">
+		<div v-if="$store.getters.getLoginStatus">
+			<router-link :to="{ path: '/home/userDetail', query: { id: $store.state.uid }}">
+				<img :src="$store.getters.getAvatar" alt="" id="login">
+			</router-link>
 		</div>
-		<div style="display: inline-block">
+		<div v-else>
+			<img src="../../../../assets/img/test.b66d0610.jpg" alt="" id="login" @click="showPopup()">
+		</div>
+		<div style="display: inline-block" @click="$store.getters.getLoginStatus?userSetting():showPopup()">
 			<span>{{$store.getters.getLoginStatus? $store.getters.getNickname : '未登录'}}</span>
 		</div>
 		<div>
@@ -76,7 +81,9 @@
 	} from '../../../../network/login.js'
 
 	import {
-		getItem,setItem,removeItem
+		getItem,
+		setItem,
+		removeItem
 	} from '../../../../store/storage.js'
 	//vuex功能引入
 	import {
@@ -100,8 +107,7 @@
 			const isRefresh = ref(false);
 			const timerstamp = ref(null);
 			const sucsTimer = ref(null);
-			const loginDetail = ref(false)
-			const loginStatus = ref(false)
+			const loginDetail = ref(false);
 
 			const state = reactive({
 				isQRcode: true,
@@ -109,7 +115,7 @@
 				timer: null,
 				userData: {}
 			})
-      //弹出与关闭用户设置页面
+			//弹出与关闭用户设置页面
 			const userSetting = () => {
 				loginDetail.value = !loginDetail.value
 			}
@@ -150,50 +156,45 @@
 			}
 
 			//长轮询监听二维码是否失效 
-			const longPoll = async() => {
+			const longPoll = async () => {
 				if (state.timer) {
 					clearTimeout(state.timer)
 				}
-				// console.log('长轮询开始')
-				const res = await checkImage(state.unikey, Date.now())
-				
-					if (res.code === 801) {
-						// 801为等待扫码
-					}
-					if (res.code === 802) {
-						// 802为待确认
-					}
-					if (res.code === 803) {
+				//长轮询开始
+				checkImage(state.unikey, Date.now()).then(async res => {
+					if (res.code == 803) {
 						// 803为授权登录成功(803状态码下会返回cookies)
 						clearTimeout(state.timer)
 						Toast.success('登陆成功')
-						const { data } = await getLoginStatus(Date.now())
-						if(data.profile!=null){
+						const {
+							data
+						} = await getLoginStatus(Date.now())
+						if (data.profile != null) {
 							//登录状态
 							//用户数据存储于本地和vuex
 							//本地存储
-							setItem('cloudMusicAvatar',data.profile.avatarUrl)
-							setItem('cloudMusicNickname',data.profile.nickname)
-							setItem('cloudMusicUserId',data.profile.userId)
+							setItem('cloudMusicAvatar', data.profile.avatarUrl)
+							setItem('cloudMusicNickname', data.profile.nickname)
+							setItem('cloudMusicUserId', data.profile.userId)
 							//vuex存储
-							store.commit("addUserData",data);
+							store.commit("addUserData", data);
 							//改变登录状态并关闭页面
 							onSuccessLogin(true)
-						}else{
+						} else {
 							//非登录状态
 							// 改变登录状态并关闭页面
 							onCloseProfile()
 						}
 						return
-					}
-					if (res.code === 800) {
+					} else if (res.code == 800) {
 						//刷新验证码 800为二维码过期
 						isRefresh.value = true;
 						return
 					}
-					state.timer = setTimeout(() => {
-						longPoll()
-					}, 2000)
+				})
+				state.timer = setTimeout(() => {
+					longPoll()
+				}, 2000)
 			}
 
 			//二维码失效刷新
@@ -210,7 +211,7 @@
 				clearTimeout(state.timer)
 				state.timer = null
 			}
-      //登录失败时,清空cookie，改变登录状态并关闭profile弹出层
+			//登录失败时,清空cookie，改变登录状态并关闭profile弹出层
 			const onCloseProfile = () => {
 				if (store.state.isLogin) {
 					store.commit('changeLoginStatus', '')
@@ -278,8 +279,7 @@
 				getLoginStatus,
 				loginDetail,
 				userSetting,
-				onCloseProfile,
-				loginStatus
+				onCloseProfile
 			};
 		}
 	}
@@ -291,14 +291,17 @@
 		margin-right: 30px;
 		cursor: pointer;
 		z-index: 2;
-    width: 150px;
+		width: 150px;
 		display: flex;
+
 		&:hover {
 			font-weight: bold;
 		}
-		div{
+
+		div {
 			flex: 1;
-			span{
+
+			span {
 				display: inline-block;
 				width: 80px;
 				white-space: nowrap;

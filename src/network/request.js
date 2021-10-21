@@ -17,8 +17,7 @@ export function request(config) {
   })
   // 2.2.响应拦截
   instance.interceptors.response.use(res => {
-		// console.log(res.data,'正常')
-		if(res.data.code == 200 ){
+		if(res.data.code == 200 || res.data.code == 800 || res.data.code == 801 || res.data.code == 802 || res.data.code == 803){
 			return res.data
 		}else if(res.data.code == 401 ){
       // token无效重新登录
@@ -29,7 +28,7 @@ export function request(config) {
 			})
 			return Promise.reject(res.data);
 		}
-		return Promise.reject(res.data);
+		return res.data
   }, err => {
 		// console.log(err.response.data.msg)
 		let message = err.response.data.msg

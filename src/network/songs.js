@@ -9,11 +9,12 @@ export const dynamicInfo = id => {
 	})
 }
 //获取歌单详情
-export const detailInfo = id => {
+export const detailInfo = (id,timerstamp) => {
 	return request({
 		url:'/playlist/detail',
 		params:{
-			id
+			id,
+			timerstamp
 		}
 	})
 }
@@ -44,12 +45,13 @@ export const likeSongsList = (uid,timerstamp) => {
 	})
 }
 //传入类型和歌单 id 可收藏歌单或者取消收藏歌单 1:收藏,2:取消收藏
-export const userSubscribe = (t,id) => {
+export const userSubscribe = (t,id,timerstamp) => {
 	return request({
 		url:'/playlist/subscribe',
 		params:{
 			t,
-			id
+			id,
+			timerstamp
 		}
 	})
 }

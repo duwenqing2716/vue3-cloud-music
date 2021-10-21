@@ -14,20 +14,20 @@
     </van-cell-group>
 		<span style="position: absolute;left: 15px;margin-top: 20px;cursor: pointer;" @click="OnlyReplay">只回复该歌单</span>
 		<button class="comment-btn" @click="sendComt">评论</button>
-		<div class="comment-content" v-show="currentPage == 1" v-if="commentList">
+		<div class="comment-content" v-show="currentPage == 1" v-if="commentList.length!=0">
 			<span class="comment-content-title">精彩评论</span>
 			<div class="content-list" v-for="(item,index) in commentList" @contextmenu.prevent="onDelete(item)" >
-				<div>
+				<div @click="reSongDetail(item.user.userId)">
 					<img :src="item.user.avatarUrl" alt="">
 				</div>
 				<div>
 					<van-cell class="comment-details">
 						<template #title>
 							<p>
-								<span>{{item.user.nickname}}: </span>
+								<span class="nickname" @click="reSongDetail(item.user.userId)">{{item.user.nickname}}: </span>
 							  {{item.content}}
 							</p>
-							<p v-if="item.parentCommentId" style="width: 100%;height: 40px;background-color: rgba(125,125,125,0.1);border-radius: 8px;line-height: 40px;padding-left: 10px;"><span>@{{othersName[item.parentCommentId]}}: </span>{{othersContent[item.parentCommentId]}}</p>
+							<p class="comment-details-floor" v-if="item.beReplied.length!=0"><span class="exist-comment" @click="reSongDetail(item.beReplied[0].user.userId)">@{{item.beReplied[0].user.nickname}}: </span>{{item.beReplied[0].content}}</p>
 						</template>
 						<template #label>
 							<span>{{compare(item.time)}}</span>
@@ -43,21 +43,28 @@
 				</div>
 			</div>
 		</div>
-		<div class="comment-content" style="margin-top: 70px;">
+		<div class="comment-content" style="margin-top: 70px;" v-if="isShowNew.length!=0">
 			<span class="comment-content-title">最新评论({{totalNums}})</span>
 			<div class="content-list" v-for="(item,index) in isShowNew" @contextmenu.prevent="onDelete(item)">
-				<div>
+				<div @click="reSongDetail(item.user.userId)">
 					<img :src="item.user.avatarUrl" alt="">
 				</div>
 				<div>
 					<van-cell class="comment-details">
 						<template #title>
 							<p>
-								<span>{{item.user.nickname}}: </span>
+								<span class="nickname" @click="reSongDetail(item.user.userId)">{{item.user.nickname}}: </span>
 							  {{item.content}}
 							</p>
-							<p v-if="item.parentCommentId" style="width: 100%;background-color: rgba(125,125,125,0.1);border-radius: 8px;line-height: 40px;padding-left: 10px;"><span>@{{othersName[item.parentCommentId]}}: </span>{{othersContent[item.parentCommentId]}}</p>
-						  <p v-if="item.beRepliedUser" style="width: 100%;background-color: rgba(125,125,125,0.1);border-radius: 8px;line-height: 40px;padding-left: 10px;"><span>@{{item.beRepliedUser.nickname}}: </span>{{othersContent[item.commentId]}}</p>
+							<p class="comment-details-floor" v-if="item.beReplied && item.beReplied.length!=0">
+								<span class="exist-comment" @click="reSongDetail(item.beReplied[0].user.userId)" v-if="item.beReplied[0].content">
+									@{{item.beReplied[0].user.nickname}}: <span>{{item.beReplied[0].content}}</span>
+								</span>
+								<span class="delete-comment" v-else>
+									该评论已被删除
+								</span>
+							</p>
+						  <p v-if="item.beRepliedUser" style="width: 100%;background-color:rgba(125,125,125,0.1);border-radius: 8px;line-height: 40px;padding-left: 10px;" @click="reSongDetail(item.beRepliedUser.userId)"><span class="exist-comment">@{{item.beRepliedUser.nickname}}: </span>{{othersContent[item.commentId]}}</p>
 						</template>
 						<template #label>
 							<span>{{compare(item.time)}}</span>
@@ -74,7 +81,7 @@
 			</div>
 		</div>
 		<div style='width: 55%;margin: 150px auto 200px;'>
-			<van-pagination v-model="currentPage" :total-items="124" :show-page-size="8" force-ellipses @change='changePage'/>
+			<van-pagination v-model="currentPage" :page-count='totalItems' :show-page-size="totalItems>8?8:totalItems" force-ellipses @change='changePage'/>
 		</div>
 	</div>
 </template>
@@ -84,6 +91,8 @@
 	import { hotComment,likeComment,parentComment,playlistComment,sendComment } from '../../network/songs.js'
 	//vuex功能引入
 	import{ useStore } from 'vuex'
+	//路由功能引入
+	import { useRouter } from 'vue-router'
 	import { debounce } from '../../common/debounce.js'
 	import { Toast,Dialog } from 'vant'
 	export default {
@@ -99,18 +108,15 @@
 		},
 		setup(props,context){
 			const store = useStore();
+			const router = useRouter(); //实例化路由
 			
 			const message = ref('');
 			const commentList = ref([]);
-			const cursor = ref(null);
 			const totalNums = ref(null);
 			const newList = ref([]);
 			const time = ref(null);
-			const statusOnce = ref(true);
-			const statusFirst = ref(null);
 			const preCommentId = ref(null);
 			const othersContent = ref({});
-			const othersName = ref({});
 			const replay = ref('请输入您的评论内容!');
 			const input = ref(null);
 			const commentId = ref(null);
@@ -119,6 +125,7 @@
 			const currentPage = ref(1);
 			const isShowNew = ref([]);
 			const numsList = ref([]);
+			const totalItems = ref(null);
 			
 			//日期格式化
 			const compare = (val) => {
@@ -145,7 +152,7 @@
 						clearTimeout(time.value)
 					}
 					preCommentId.value = val
-					//进一步优化方法:是否与第一次status相同，相同则不发请求 逻辑容易交错 不做
+					//进一步优化方法:是否与第一次status相同，相同则不发请求 逻辑容易交错 不好做
 					time.value = setTimeout(() => {
 						// if(preCommentId.value == val&&status == statusFirst.value) return
 						getLikeComment(props.listId,val,status,2,Date.now())
@@ -175,6 +182,10 @@
 					})
 				}
 			}
+			//跳转个人详情页面
+			const reSongDetail = (id) => {
+				router.push({path:'/home/userDetail',query:{id:id}})
+			}
 			//评论初始化
 			const OnlyReplay = () => {
 				commentId.value = ''
@@ -202,10 +213,11 @@
 				//将自己的评论放在page1的顶层
 				newList.value[0].list.unshift(res.comment)
 				if(commentId.value){
-					const { data } = await parentComment(commentId.value,props.listId,2,1,Date.now())
-					othersContent.value[res.comment.commentId] = data.ownerComment.content
+					//直接将数据存在othersContent.value无需发请求
+					othersContent.value[res.comment.commentId] = userSelfFloor.value
 				}
 				OnlyReplay()
+				//总数据量++
 				totalNums.value++
 				context.emit('changeNum',totalNums.value)
 				}else{
@@ -217,8 +229,11 @@
 			//点击评论按钮
 			const onComment = (val) => {
 				commentId.value = ''
+				userSelfFloor.value = ''
 				replay.value = '回复 '+val.user.nickname+' :'
 				toTop()
+				//他人内容暂存于此处
+				userSelfFloor.value = val.content
 				commentId.value = val.commentId
 			}
 			//回滚到顶
@@ -230,15 +245,6 @@
 					}
 					document.documentElement.scrollTop-=60
 				},10)		
-			}
-			//获取回复楼层数据 减少同类数据多次请求 已优化 进一步优化方式:判断isShowNew.value.commentId是否==val将其content取出并缓存进一步减少请求量 (因为是同时加载所以获取数据不全,做出优化效果很麻烦)
-			const getParentCommentId = async(val) => {
-				if(!numsList.value.some(item=>item == val)){
-					numsList.value.push(val)
-					const { data } = await parentComment(val,props.listId,2,1,Date.now())
-					othersContent.value[val] = data.ownerComment.content
-					othersName.value[val] = data.ownerComment.user.nickname
-				}
 			}
 			//分页功能
 			const changePage = async() => {
@@ -259,17 +265,19 @@
 				const resData = await playlistComment(props.listId,30,val*30,Date.now())
 				listDetail.page = currentPage.value
 				listDetail.list = resData.comments
+				//方便分页功能查找
 				newList.value.push(listDetail)
-				newList.value.filter(item=>{
-					if(item.page == currentPage.value){
-						isShowNew.value = item.list
-					}
-				})
-				isShowNew.value.filter(item=>{
-					if(item.parentCommentId) getParentCommentId(item.parentCommentId,item)
-				})
-				totalNums.value = resData.total
-				console.log(isShowNew.value)
+				isShowNew.value = resData.comments
+				//分页数
+				// 网易云后端total计数问题,不做深究 简单处理
+				if(resData.total == 0){
+					totalNums.value = resData.comments.length
+					context.emit('changeNum',resData.comments.length)
+				} else {
+					totalNums.value = resData.total
+					context.emit('changeNum',totalNums.value)
+				}
+				totalItems.value = Math.ceil(totalNums.value/30)
 			}
 			//删除自己的评论(鼠标右键点击事件) 判断是否为自己 左击时间将与点赞功能冲突 功能未完善
 			const onDelete = (item) => {
@@ -287,6 +295,10 @@
 								isShowNew.value.splice(index,1)
 							}
 						})
+						//页面bug 删除原对话 重新刷新则评论不算数 已解决 网易云自身问题歌单详情页还是不算数 再删除则为-1
+						//当在评论页和收藏页切换id时页面不更新 直接更新时切换为第一个页面
+						totalNums.value--
+						context.emit('changeNum',totalNums.value)
 					})
 					.catch(() => {
 					});
@@ -303,9 +315,6 @@
 				//热评数据
 				const res = await hotComment(props.listId,2,10,1,Date.now())
 				commentList.value = res.hotComments
-				commentList.value.filter(item=>{
-					if(item.parentCommentId) getParentCommentId(item.parentCommentId,item)
-				})
 				//新评数据
 				getNewData(0)
 			})
@@ -314,16 +323,11 @@
 				commentList,
 				compare,
 				newList,
-				cursor,
 				totalNums,
 				onLike,
 				getLikeComment,
-				statusOnce,
-				statusFirst,
 				preCommentId,
-				getParentCommentId,
 				othersContent,
-				othersName,
 				onComment,
 				replay,
 				input,
@@ -338,7 +342,9 @@
 				getNewData,
 				onTransmit,
 				numsList,
-				onDelete
+				onDelete,
+				totalItems,
+				reSongDetail
 			}
 		}
 	}
@@ -403,6 +409,14 @@
 					&:nth-child(2){
 						flex: 1;
 						.comment-details{
+							.comment-details-floor{
+									width: 100%;
+									height: 40px;
+									background-color: rgba(125,125,125,0.1);
+									border-radius: 8px;
+									line-height: 40px;
+									padding-left: 10px;
+								}
 							p{
 								max-width: 800px;
 								overflow: hidden;
@@ -411,22 +425,28 @@
 								-webkit-line-clamp: 3;
 								-webkit-box-orient: vertical;
 								font-size: 15px;
-								span{
+								.exist-comment,.nickname{
 									color: darkblue;
 									cursor: pointer;
 									opacity: 0.7;
 									&:hover{
 										opacity: 1;
 									}
+									span{
+										color:black
+									}
+								}
+								.delete-comment{
+									color: darkgray;
+									margin-left: calc(50% - 49px);
 								}
 							}
 							span{
-								font-size: 14px;
+								font-size: 0.875rem;
 							}
 						}
 					}
 					&:nth-child(3){
-						// margin-right: 30px;
 						position: absolute;
 						right: 10px;
 						bottom: 10px;

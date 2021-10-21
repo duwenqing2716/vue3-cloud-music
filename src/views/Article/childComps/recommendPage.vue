@@ -32,7 +32,7 @@
 								<van-grid-item v-for="(item,index) in recommends" :key="item.id"  @click='onSongsDetails(item.id)'>  
 									<div class="playcount">
 										<i class="iconfont icon-bofang1"></i>
-										<span>{{item.playCount>99999?Math.floor(item.playCount/10000)+'万':item.playCount}}</span>
+										<span>{{item.playCount>9999?Math.floor(item.playCount/10000)+'万':item.playCount}}</span>
 									</div>
 									<van-image :src="item.picUrl" />
 									<div class="icon-xs">
@@ -81,7 +81,7 @@
 									</div>
 									<div class="mv-show-right">
 									<i class="iconfont icon-bofang"></i>
-									<span class="introduce-count">{{item.playCount}}</span>
+									<span class="introduce-count">{{item.playCount>9999?Math.floor(item.playCount/10000)+'万':item.playCount}}</span>
 									</div>
 								</div>
 							  <van-image :src="item.picUrl" class="mv-img"/>
@@ -133,68 +133,49 @@
 			const active = ref(0);
 			const banners = ref({});
 			const recommends = ref({});
-			const theme = ref(null);
 			const personal = ref({});
 			const NewSongs = ref({});
 			const recomdMv = ref({});
-			let date = new Date()
-			const day = ref(date.getDate())
+			let date = new Date();
+			const day = ref(date.getDate());
 			//跳转详细歌单
 			const onSongsDetails = (id) => {
 				router.push({path:'/home/songDetail',query:{id}})
 			}
 			//挂载时 此处功能最好用async await配合使用
-			onMounted(() => {
+			onMounted(async() => {
 				Toast.loading({
 				  duration: 0, // 持续时间，0表示持续展示不停止
 				  forbidClick: true, // 是否禁止背景点击
 				  message: '加载中...' // 提示消息
 				})
 				//获取banner数据
-				getBanneers().then(res => {
-					if (res.code === 200) {
-						banners.value = res.banners
-					}
-				})
+				const res = await getBanneers()
+				if (res.code === 200) {
+					banners.value = res.banners
+				}
 				
 				//登录后功能 未完善(看不懂这个接口作用)
-				// getRecomdResource().then(res => {
-				// 	if(res.code === 200){
-				// 		console.log(res)
-				// 		// recommends.value = res.result
-				// 	}
-				// })
+				// getRecomdResource()
 				
-				//未登录 和 登录 加上时间戳防止缓存
-				getRecommends({limit:9,timestamp:Date.now()}).then(res => {
-					if (res.code === 200) {
-						// console.log(res)
-						recommends.value = res.result
-					}
-					Toast.clear()
-				})
 				//独家放送数据获取
-				getPersonalized().then(res => {
-					if(res.code === 200){
-						// console.log(res)
-						personal.value = res
-					}
-				})
+				const resData = await getPersonalized()
+				if(resData.code === 200){
+					personal.value = resData
+				}
+				Toast.clear()
 				//最新歌曲数据获取
-				getNewSong(12).then(res => {
-					if(res.code === 200){
-						// console.log(res)
-						NewSongs.value = res.result
-					}
-				})
+				const data = await getNewSong(12)
+				if(data.code === 200){
+					NewSongs.value = data.result
+				}
 				//推荐mv数据获取
-				getPersonalMv().then(res => {
-					if(res.code === 200){
-					  // console.log(res)
-						const list = res.result
-					  recomdMv.value = list.filter((value,index)=> index<3 )
-					}
-				})
+				const result = await getPersonalMv()
+				if(result.code === 200){
+					const list = result.result
+					recomdMv.value = list.filter((value,index)=> index<3 )
+				}
+				
 			})
 			//判断登录状态 获取不同的推荐歌单数据
 			watch(()=>store.state.isLogin,(newValue,oldValue)=>{
@@ -204,13 +185,12 @@
 							recommends.value = res.result
 						}
 					})
-			})
+			},{immediate:true})
 			
 			return {
 				active,
 				banners,
 				recommends,
-				theme,
 				personal,
 				NewSongs,
 				recomdMv,
@@ -326,7 +306,7 @@
 						width: 317px;
 						height: 178px;
 						position: absolute;
-						border-radius: 15px;
+						border-radius: 8px;
 						z-index: 1;
 						top: 18px;
 						overflow: hidden;
@@ -350,7 +330,7 @@
 						}
 						&:hover .mv-show-top{
 							opacity: 1;
-							top: 0;
+							top: -6px;
 							transition: all 0.3s ease-in 1s;
 						}
 						&:hover .mv-show-right{
@@ -372,6 +352,7 @@
 							top: 15px;
 							right: 10px;
 							font-size: 14px;
+							font-weight: bold;
 						}
 					}
 					.mv-img{
@@ -407,8 +388,9 @@
 					top: 20px;
 					right: 15px;
 					font-size: 14px;
-					z-index: 1;
+					z-index: 2;
 					font-weight: bold;
+					cursor: pointer;
 				}
 				:deep(.van-image){
 					img{
@@ -441,6 +423,11 @@
 					overflow: hidden;
 					top: 16px;
 					z-index: 1;
+					border-radius: 8px 8px 0 0;
+					box-shadow:0 5px 30px gray inset;
+					-webkit-box-shadow:0 5px 30px gray inset;
+					-moz-box-shadow:0 5px 30px gray inset;
+					-o-box-shadow:0 5px 30px gray inset;
 					.icon-bofang{
 						position: absolute;
 						bottom: 10px;
@@ -451,9 +438,8 @@
 					.change-list{
 						position: absolute;
 						font-size: 13px;
-						width: 96%;
+						width:100%;
 						top: -50px;
-						left: 4px;
 						background-color: rgba(0,0,0,0.3);
 						color: white;
 						border-radius: 8px 8px 0 0;

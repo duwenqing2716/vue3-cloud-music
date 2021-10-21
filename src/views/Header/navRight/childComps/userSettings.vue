@@ -143,11 +143,11 @@
 				uid.value = store.getters.getUserId
 				let levels = await getUserLevel()
 				level.value = levels.data.level
-				const res = await getUserEvents({uid:uid.value})
+				const res = await getUserEvents({uid:uid.value,timestamp:Date.now()})
 				state.events = res.size
-				const data = await getUserFollows({uid:uid.value}) 
+				const data = await getUserFollows({uid:uid.value,timestamp:Date.now()}) 
 				state.follow = data.follow
-				const val = await getUserFolloweds({uid:uid.value}) 
+				const val = await getUserFolloweds({uid:uid.value,timestamp:Date.now()}) 
 				state.fans = val.followeds
 			})
 			

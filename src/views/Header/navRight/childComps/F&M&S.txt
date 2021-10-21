@@ -6,7 +6,7 @@
 增加代码量,多处v-show取代v-if,增加负荷,使用vuex代替保存数据在组件中传递
 
 三:
-ref与reactive使用界限不明确,不应该全使用reactive响应式数据
+ref与reactive使用界限不明确,不应该全使用reactive响应式数据或者ref类型数据
 
 四:
 当需要等待上一个请求结果传入下一个请求参数时,应使用sync与await配合,而不是通过watch进行上一个请求结果数据监听从而启动下一个数据请求操作以及promise函数回调
@@ -29,13 +29,6 @@ const longPoll = () => {
 	}
 	// console.log('长轮询开始')
 	checkImage(state.unikey, Date.now()).then(res => {
-		// console.log(res)
-		if (res.code === 801) {
-			// console.log(res.message)
-		}
-		if (res.code === 802) {
-			// console.log(res.message)
-		}
 		if (res.code === 803) {
 			// console.log(res)
 			return state.userData = res.cookie
@@ -177,7 +170,9 @@ span{
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
-3.凡是设置变粗动态交互效果时,最好将其元素设置固定宽度以免影响其他元素波动,或者一般通过颜色加深在达到其效果
+3.凡是设置变粗动态交互效果时,最好将其元素设置固定宽度以免影响其他元素波动,或者一般通过颜色加深,透明度大小在达到其效果
+例子:
+opcity:0.8 hover后设置为opcity:1
 
 十七:(后面更新会进行重新处理)
 登录页面最大问题:
@@ -185,3 +180,12 @@ span{
 原因:
 重新刷新打开页面未进行数据请求而是到本地进行数据获取
 本地数据并不是最新数据,而是上次存储的数据
+
+十八:
+高亮设置
+例子:
+在html标签中设置v-html='highlight(item.nickname)'进行解析
+const highlight = (str) => {
+	const reg = new RegExp(search.value,'gim')
+	return str.replaceAll(reg,`<span style='color:var(--mainColor)'>${search.value}</span>`)
+}

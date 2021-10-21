@@ -36,20 +36,22 @@ export const getUserSignin = type => {
 	})
 }
 //获取已喜欢音乐id列表(id数组)
-export const getUserLikeList = uid => {
+export const getUserLikeList = (uid,timerstamp) => {
 	return request({
 		url:'/likelist',
 		params:{
-			uid
+			uid,
+			timerstamp
 		}
 	})
 }
 //传入用户 id, 可以获取用户歌单
-export const getUserPlaylist = uid => {
+export const getUserPlaylist = (uid,timerstamp) => {
 	return request({
 		url:'/user/playlist',
 		params:{
-			uid
+			uid,
+			timerstamp
 		}
 	})
 }

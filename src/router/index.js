@@ -5,6 +5,7 @@ import Article from '../views/Article/Article.vue'
 import userBinding from '../components/content/userBinding.vue'
 import recommendPage from '../views/Article/childComps/recommendPage.vue'
 import songDetail from '../components/content/songDetail.vue'
+import userDetail from '../components/content/userDetail.vue'
 
 const routes = [
   {
@@ -35,6 +36,13 @@ const routes = [
 					props: route => ({
             id: route.query.id
           })
+				},
+				{
+					path: '/home/userDetail',
+					component: userDetail,
+					props: route => ({
+				    id: route.query.id
+				  })
 				}
 	  ]
 	}

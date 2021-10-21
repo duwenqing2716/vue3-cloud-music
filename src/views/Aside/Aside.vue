@@ -2,7 +2,7 @@
 	<div class="cloud-aside">
 		<van-sidebar v-model="active">
 			<div class="common">
-		    <van-sidebar-item title="发现音乐" />
+		    <van-sidebar-item title="发现音乐" to="/home"/>
 		    <van-sidebar-item title="播客" />
 		    <van-sidebar-item title="视频" />
 			  <van-sidebar-item title="朋友" />
@@ -53,7 +53,7 @@
 				</div>
 			</div>
 			<div>
-			<van-sidebar-item v-show="isShowIcon">
+			<van-sidebar-item v-show="isShowIcon" @click="reSongDetail(myfavorite[0].id)">
 			  <template #title>
 				  <i class="iconfont icon-xihuan1" style="font-weight: bold;"></i>
 					<span>我喜欢的音乐</span>
@@ -73,7 +73,7 @@
 				</div>
 			</div>
 			<div v-show="isShowPlayList" v-if="$store.getters.getLoginStatus">
-			<van-sidebar-item v-for="(item,index) in playlist">
+			<van-sidebar-item v-for="(item,index) in playlist" @click="reSongDetail(item.id)">
 			  <template #title>
 				  <i class="iconfont icon-gedan1"></i>
 					<span class="playlist">{{item.name}}</span>
@@ -85,6 +85,8 @@
 </template>
 
 <script>
+	//由于setup中不存在this,因此在setup中使用路由必须先声明
+	import { useRouter } from 'vue-router';
 	//vue功能引入
 	import { ref,onMounted,watch,computed,nextTick } from 'vue';
 	//本地存储引入
@@ -105,7 +107,8 @@
 			}
 		},
 		setup(props,context){
-			const store = useStore()
+			const store = useStore();
+			const router = useRouter();
 			
 			const active = ref(0);
 			const theme = ref(null);
@@ -124,23 +127,25 @@
 			}
 			//分开获取我喜欢的音乐和我收藏的歌单
 			const onGetUserPlayList = () => {
-				getUserPlaylist(uid.value).then(res=>{
+				getUserPlaylist(uid.value,Date.now()).then(res=>{
 					if(res.code === 200){
-						myfavorite.value = res.playlist.filter((val,index)=>index===0)
+						myfavorite.value = res.playlist.filter((val,index)=>index==0)
 						playlist.value = res.playlist.filter((val,index)=>index>0)
 					}
 				})
 			}
-			
-			//{immediate:true}立即执行因此不需要挂载执行
-			
-			// onMounted(()=>{
-			// 	uid.value = store.getters.getUserId
-			// 	if(uid.value){
-			// 		onGetUserPlayList()
-			// 	}
-			// })
-			
+			//歌单详情页面跳转
+			const reSongDetail = (id) => {
+				//路由视图组件引用了相同组件时，当路由参会变化时，会导致该组件无法更新，也就是我们常说中的页面无法更新的问题。
+					router.push({
+						path: '/home/songDetail',
+						query: {
+							id
+						}
+					})
+
+			}
+			//{immediate:true}立即执行因此不需要onMounted挂载执行			
 			//监听登录状态,获取uid并获取自己收藏的歌单 (立即执行)
 			watch(()=>store.state.isLogin,(newValue,oldValue)=>{
 					if(store.getters.getUserId){
@@ -148,6 +153,10 @@
 						onGetUserPlayList()
 					}
 			},{immediate:true})
+			
+			watch(playlist.value,(newValue,oldValue)=>{
+				console.log(newValue,'歌单')
+			})
 			
 			return { 
 				active,
@@ -158,7 +167,8 @@
 				playlist,
 				myfavorite,
 				uid,
-				onGetUserPlayList
+				onGetUserPlayList,
+				reSongDetail
 			};
 		}
 	}

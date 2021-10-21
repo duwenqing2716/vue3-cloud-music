@@ -32,7 +32,6 @@
 			Search,
 			NavRight
 		},
-		
 		setup(props,context) {	
 			const router = useRouter() //实例化路由
 			const theme = ref(null)

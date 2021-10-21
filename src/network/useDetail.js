@@ -1,10 +1,11 @@
 import { request } from './request.js'
 //获取用户详情
-export const getUserDetail = uid => {
+export const getUserDetail = (uid,timerstamp) => {
 	return request({
 		url:'/user/detail',
 		params:{
-			uid
+			uid,
+			timerstamp
 		}
 	})
 }
@@ -82,5 +83,39 @@ export const updatedAvatar = (imgSize,imgX,imgY,timestamp,data) => {
 		  'Content-Type': 'multipart/form-data',
 		},
 		data
+	})
+}
+//传入用户 id, 可获取用户播放记录
+export const getRecord = (uid,type) => {
+	return request({
+		url:'/user/record',
+		params:{
+			uid,
+			type
+		}
+	})
+}
+//登录后调用此接口 , 传入用户 id, 和操作 t,可关注/取消关注用户
+// 1为关注,其他为取消关注
+export const userFollowed = (id,t,timerstamp) => {
+	return request({
+		url:'/follow',
+		params:{
+			id,
+			t,
+			timerstamp
+		}
+	})
+}
+//
+export const userPlayList = (uid,limit,offset,timerstamp) => {
+	return request({
+		url:'/user/playlist',
+		params:{
+			uid,
+			limit,
+			offset,
+			timerstamp,
+		}
 	})
 }

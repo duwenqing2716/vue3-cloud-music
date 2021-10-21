@@ -1,11 +1,3 @@
-个人信息页并未完全完善,(以后有时间再完善)
-如:
-1.增加正则匹配实现报错功能,
-2.介绍文本域响应式显示字数0/300,
-3.判断页面是否改动而进行提交按钮@click的渲染,
-4.取消按钮也是如此
-5.自定义下拉框样式设置
-
 一:
 排版问题:左侧文字对齐与右侧文本框对齐
 将所有div进行绝对定位,对于每一个div以及其中的元素进行单独设置margin-top值
@@ -87,6 +79,8 @@ watch([()=>state.yearValue, ()=>state.monthValue], (newValue, oldValue) => {
 	var day = new Date(newValue[0], newValue[1], 0);
 	currentDay.value = day.getDate()
 })
+使用{immediate:true}进行立即执行,减去onMunted挂载再执行一遍的多余操作
+使用{deep:true}对于该值中的任一属性进行深度监听
 
 六:
 Cropper.js使用体会:
@@ -193,3 +187,152 @@ export const register = params =>{
 		params
 	})
 }
+
+八:
+接收大量数据时最好将其存于数组中,数组方法更多更便于筛选等类型操作(find,some,forEach,filter,map...),
+在v-for in遍历数组时以及数据请求时，最好将要用到的数据进行整理,放于一个数组中,可以节约更多内存空间，无需
+多次重新开辟新常量进行存储,开辟多个常量维护起来非常麻烦，而且页面看起来很多很大
+层级划分功能:
+主组件最好将所有数据请求并发送到子组件,子组件只负责功能操作不负责数据请求(看具体情况而定)
+return数据理解
+在页面上需要的功能数据才return出去,因为setup为一个函数,函数内的数据不return出去是不能得到的,有自己独立的作用域
+
+九:
+日期格式化最好额外封装在一个js中,封装多种类型方法以便以后多次使用,或者使用comment等第三方插件库
+
+十:
+路由带参跳转
+1.push,replace
+push类似出入栈,无关路由路径
+replace不可回跳
+
+2.params与query
+(1). 不带参数:
+是'/'开始就是从根路由开始，如果开始不带'/'，则从当前路由开始。
+name,path都行, 建议用name 
+
+例子1:router-link中
+<router-link :to="{name:'home'}"> 
+<router-link :to="{path:'/home'}">
+
+例子2:router.push()中(vue3语境)
+router.push({name:'home'})
+router.push({path:'/home'})
+(2).带参数:
+例子1:query传参:
+传多个query的值或者值为动态参数需要{},单个可有可无
+router.push({name:'home',query: {id:'1'}})
+router.push({path:'/home',query: {id:'1'}})
+<router-link :to="{name:'home', query: {id:1}}"> 
+
+
+路由配置props接收传递参数问题:
+1.通过params传递的id,
+path: '/user/:id',
+直接props: true传递
+其他页面可直接通过props接收参数
+2.通过query传递的id,
+path: '/user',
+需要props: route => ({
+				id: route.query.id
+			})
+其他页面可直接通过props接收参数
+
+
+例子2:params传参:
+router.push({name:'home',params: {id:'1'}})  // 只能用 name
+<router-link :to="{name:'home', params: {id:1}}"> 
+不配置path ,第一次可请求,刷新页面id会消失,最好配置
+配置path,刷新页面id会保留
+路由配置 path: "/home/:id" 或者 path: "/home:id" 
+
+query和params区别:
+query类似 get, 跳转之后页面 url后面会拼接参数,类似?id=1, 刷新页面id还在,非重要性的可以这样传, 密码之类还是用params
+params类似 post, 跳转之后页面 url后面不会拼接参数 , 但是刷新页面id 会消失
+
+十一:
+鼠标右键点击事件:
+例子:
+ @contextmenu.prevent="onDelete(item)"
+
+十二:
+css类操作:
+最多3行,超过则省略
+width: 800px;
+overflow: hidden;
+text-overflow: ellipsis;
+display: -webkit-box;
+-webkit-line-clamp: 3;
+-webkit-box-orient: vertical;
+
+用好伪类可以少写很多东西
+&::after
+&::before
+例子:
+&::after{
+	position: absolute;
+	content: '';
+	width: 12px;
+	height: 12px;
+	border: 2px solid black;
+	border-bottom-color:transparent ;
+	border-right-color:transparent ;
+	transform:translate(-50%,-50%) rotate(135deg);
+	margin-left: 20px;
+	margin-top: 16px;
+}	
+&:before{
+	position: absolute;
+	display:block;
+	top: 0; right: 0; bottom: 0; left: 0;
+	z-index:1;
+	border-radius:25px;
+	background:rgba(0,0,0,.1);
+}
+
+transform:translate(-50%,-50%)配合top:50%或者margin-top:50%打到居中对齐效果
+transform: rotate(180deg); 将图标旋转180度
+
+transition: all 0.3s ease-in 1s;设置延时出现时间
+&:hover .mv-show-top{
+	opacity: 1;
+	top: 0;
+	transition: all 0.3s ease-in 1s;
+}
+
+内阴影inset 默认outset外阴影
+box-shadow:0px 2px 5px black inset;
+
+flex处理换行 一行3个
+横排:x轴
+display: flex;
+flex-wrap: wrap;
+align-items: center;
+width: 33%;
+margin-bottom: 40px;
+justify-content: space-between;
+竖排只需加上限制高度:y轴
+height: 330px;
+flex-direction: column;
+
+
+
+
+
+未做:
+歌曲排序(选做)
+歌曲数量根据登录状态来变化(选做)
+回复表情缺失(选做)
+消息弹出层(需要案例数据,暂时不做)
+发送私信页(选做)
+vue3页面缓存(keep-alive)
+组件分组封装
+我创建的歌单
+最近收听页面
+个人信息页并未完全完善
+如:
+1.增加正则匹配实现报错功能,
+2.介绍文本域响应式显示字数0/300,
+3.判断页面是否改动而进行提交按钮@click的渲染,
+4.取消按钮也是如此
+5.自定义下拉框样式设置
