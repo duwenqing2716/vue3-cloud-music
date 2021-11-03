@@ -2,7 +2,7 @@
 	<div>
 		<div class="login-nav">
 			<span class="change-modes" @click="onChangeModes"></span>
-			<img src="../../../../assets/img/111.jpg" alt="">
+			<img src="~assets/img/111.jpg" alt="">
 		</div>
 		<van-form>
 		<van-cell-group inset class="input">
@@ -66,9 +66,9 @@
 	//组件库引入
 	import { Toast } from 'vant'
 	//接口引入
-	import { cellphoneLogin,registPhone } from '../../../../network/login.js'
+	import { cellphoneLogin,registPhone } from 'network/login.js'
 	//存储本地cookie
-	import { setItem } from '../../../../store/storage.js'
+	import { setItem } from 'store/storage.js'
 	export default {
 		name:'otherLogin',
 		setup(props, context) {

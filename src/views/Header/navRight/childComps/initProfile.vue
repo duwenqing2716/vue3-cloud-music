@@ -4,7 +4,7 @@
 			<span class="change-modes" style="">
 				<span @click="backLogin"> &lt 返回登录</span>
 			</span>
-			<img src="../../../../assets/img/111.jpg" alt="">
+			<img src="~assets/img/111.jpg" alt="">
 		</div>
 		<span class="notice">取一个昵称,让大家记住你</span>
 		<van-cell-group inset>
@@ -24,7 +24,7 @@
 	//组件库引入
 	import{ Toast } from 'vant'
 	//接口引入
-	import { register,initProfile } from '../../../../network/login.js'
+	import { register,initProfile } from 'network/login.js'
 	export default {
 		name:'initProfile',
 		setup(props,context){

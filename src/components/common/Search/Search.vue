@@ -62,12 +62,12 @@
 		getItem,
 		setItem,
 		removeItem
-	} from '../../../store/storage.js'
+	} from 'store/storage.js'
 	//接口引入
 	import {
 		_hotSearchDetail,
 		_searchSuggest
-	} from '../../../network/search.js'
+	} from 'network/search.js'
  //由于setup中不存在this,因此在setup中使用路由必须先声明
 	import {
 		useRouter

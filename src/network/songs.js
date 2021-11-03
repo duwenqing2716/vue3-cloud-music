@@ -141,3 +141,23 @@ export const playlistComment = (id,limit,offset,timerstamp) => {
 		}
 	})
 }
+//传入歌单名字可新建歌单 默认否，传'10'则设置成隐私歌单 
+export const createPlaylist = (name,privacy) => {
+	return request({
+		url:'/playlist/create',
+		params:{
+			name,
+			privacy
+		}
+	})
+}
+//传入歌单id可删除歌单
+export const deletePlaylist = (id,timerstamp) => {
+	return request({
+		url:'/playlist/delete',
+		params:{
+			id,
+			timerstamp
+		}
+	})
+}

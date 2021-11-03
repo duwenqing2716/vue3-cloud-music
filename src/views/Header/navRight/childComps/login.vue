@@ -6,7 +6,7 @@
 			</router-link>
 		</div>
 		<div v-else>
-			<img src="../../../../assets/img/test.b66d0610.jpg" alt="" id="login" @click="showPopup()">
+			<img src="~assets/img/test.b66d0610.jpg" alt="" id="login" @click="showPopup()">
 		</div>
 		<div style="display: inline-block" @click="$store.getters.getLoginStatus?userSetting():showPopup()">
 			<span>{{$store.getters.getLoginStatus? $store.getters.getNickname : '未登录'}}</span>
@@ -60,7 +60,7 @@
 	import regist from './regist.vue'
 	import verify from './verify.vue'
 	import initProfile from './initProfile.vue'
-	import userSettings from './userSettings.vue'
+	import userSettings from 'components/content/bind/userSettings.vue'
 	//vue功能
 	import {
 		ref,

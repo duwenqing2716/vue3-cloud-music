@@ -65,7 +65,7 @@
 	//接口引入
 	import {
 		_searchSuggest
-	} from '../../../../network/search.js'
+	} from 'network/search.js'
 	
 	export default{
 		name:'searchResult',

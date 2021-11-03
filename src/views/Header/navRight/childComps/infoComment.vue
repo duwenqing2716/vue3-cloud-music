@@ -13,7 +13,7 @@
 					<div style="display: flex;margin-left: 20px;">
 						<div class='dot' v-show="!item.noticeAccountFlag"></div>
 						<div class="infoList">
-							<img :src="item.fromUser.avatarUrl" alt="">
+							<img v-lazyload="item.fromUser.avatarUrl + '?param=45y45'" alt="">
 						</div>
 					</div>
 					<van-cell style="width: 300px;">
@@ -47,7 +47,7 @@
 	//接口引入
 	import {
 		privateInfo,privateComment,privateAtme,privateNotice
-	} from '../../../../network/infoMsg.js'
+	} from 'network/infoMsg.js'
 	//vuex功能引入
 	import {
 		useStore,
@@ -56,7 +56,7 @@
 	//本地存储功能引入
 	import {
 		getItem
-	} from '../../../../store/storage.js'
+	} from 'store/storage.js'
 	//组件库引入
 	import {
 		Toast

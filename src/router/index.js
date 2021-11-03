@@ -1,11 +1,11 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-import Home from '../views/CloudMuisc.vue'
-import Article from '../views/Article/Article.vue'
-import userBinding from '../components/content/userBinding.vue'
-import recommendPage from '../views/Article/childComps/recommendPage.vue'
-import songDetail from '../components/content/songDetail.vue'
-import userDetail from '../components/content/userDetail.vue'
+import Home from 'views/CloudMuisc.vue'
+import Article from 'views/Article/Article.vue'
+import userBinding from 'components/content/bind/userBinding.vue'
+import recommendPage from 'views/Article/childComps/recommendPage.vue'
+import songDetail from 'components/content/songDetail/songDetail.vue'
+import userDetail from 'components/content/profile/userDetail.vue'
 
 const routes = [
   {

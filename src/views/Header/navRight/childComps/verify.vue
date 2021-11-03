@@ -4,7 +4,7 @@
 			<span class="change-modes" style="">
 				<span @click="backLogin"> &lt 返回登录</span>
 			</span>
-			<img src="../../../../assets/img/111.jpg" alt="">
+			<img src="~assets/img/111.jpg" alt="">
 		</div>
 		<span class="notice">为了安全,我们会向你的手机发送短信校验码</span>
 		<div class="sendSms">
@@ -32,11 +32,11 @@
 	//vuex功能引入
 	import{ useStore } from 'vuex'
 	//接口引入
-	import { checkSms,sendSms,registPhone,register,changePwd } from '../../../../network/login.js'
+	import { checkSms,sendSms,registPhone,register,changePwd } from 'network/login.js'
 	//组件库引入
 	import { Toast } from 'vant'
 	//存储本地cookie
-	import { setItem } from '../../../../store/storage.js'
+	import { setItem } from 'store/storage.js'
 	export default {
 		name:'verify',
 		props:{

@@ -6,7 +6,7 @@
 					<div>
 						<van-swipe class="my-swipe" lazy-render :autoplay="5000" indicator-color="var(--mainColor)">
 							<van-swipe-item v-for="(item,index) in banners" style="background-color: transparent;">
-								<img :src="item.imageUrl" alt="" style="width: 100%;height: 281px;">
+								<img v-lazyload="item.imageUrl + '?param=800y281'" alt="" style="width: 100%;height: 281px;">
 								<div class="tag">{{item.typeTitle}}</div>
 							</van-swipe-item>
 						</van-swipe>
@@ -15,7 +15,7 @@
 							<span class="recomdInfo">推荐歌单</span>
 							<van-grid :column-num="5" :border='false'>
 								<van-grid-item @click='onSongsDetails'>
-									<img class="change-img">
+									<img class="change-img" src="~assets/img/排行.png" >
 									<div class="icon-xs">
 										<div class="change-list">
 										  <span>根据您的音乐口味生成</span>
@@ -34,7 +34,7 @@
 										<i class="iconfont icon-bofang1"></i>
 										<span>{{item.playCount>9999?Math.floor(item.playCount/10000)+'万':item.playCount}}</span>
 									</div>
-									<van-image :src="item.picUrl" />
+									<img v-lazyload="item.picUrl + '?param=184y184'" />
 									<div class="icon-xs">
 										<i class="iconfont icon-bofang"></i>
 									</div>
@@ -43,11 +43,11 @@
 							</van-grid>
 					</div>
 					<div class="recomd-list">
-						<span class="recomdInfo">{{personal.name}}</span>
-						<van-grid :column-num="3" :border='false'>
+						<span class="recomdInfo" style="width: 1080px;">{{personal.name}}</span>
+						<van-grid :column-num="3" :border='false' style="width: 1080px;">
 							<van-grid-item v-for="(item,index) in personal.result" :key="item.id" style="cursor: pointer;"> 
 							  <i class="iconfont icon-bofang" style="position: absolute;top: 20px;left: 15px"></i>
-							  <van-image :src="item.picUrl" />
+							  <img v-lazyload="item.picUrl + '?param=340y117'" />
 								<span class="introduce">{{item.name}}</span>
 							</van-grid-item>
 						</van-grid>	
@@ -57,7 +57,7 @@
 						<div class="newSongs-list">
 							<div class="newSongs" v-for="(item,index) in NewSongs">
 								<div>
-									<img :src="item.picUrl" alt="">
+									<img v-lazyload="item.picUrl + '?param=65y65'" alt="">
 									<i class="iconfont icon-bofang"></i>
 								</div>
 								<div class="list-text">
@@ -84,7 +84,7 @@
 									<span class="introduce-count">{{item.playCount>9999?Math.floor(item.playCount/10000)+'万':item.playCount}}</span>
 									</div>
 								</div>
-							  <van-image :src="item.picUrl" class="mv-img"/>
+							  <img v-lazyload="item.picUrl + '?param=317y178'" class="mv-img"/>
 								<span class="introduce-text">
 								  {{item.name}}
 								</span>
@@ -109,7 +109,7 @@
 	//接口引入
 	import {
 		getBanneers,getRecommends,getNewSong,getPersonalized,getPersonalMv,getRecomdResource
-	} from '../../../network/recommend.js'
+	} from 'network/recommend.js'
 	//vue功能引入
 	import {
 		ref,
@@ -119,7 +119,7 @@
 	//组件库引入
 	import { Toast } from 'vant'
 	//本地存储引入
-	import { getItem } from '../../../store/storage.js'
+	import { getItem } from 'store/storage.js'
 	//vuex功能引入
 	import{ useStore } from 'vuex'
 	//由于setup中不存在this,因此在setup中使用路由必须先声明
@@ -274,7 +274,7 @@
 				.change-img{
 					width:184px;
 					height:184px;
-					background:url(../../../assets/img/1sfsd.png) center center no-repeat;
+					background:center center no-repeat;
 					background-size: cover;
 					border-radius: 8px;
 					filter:blur(4px) ;
@@ -388,16 +388,14 @@
 					top: 20px;
 					right: 15px;
 					font-size: 14px;
-					z-index: 2;
+					z-index: 1;
 					font-weight: bold;
 					cursor: pointer;
 				}
-				:deep(.van-image){
 					img{
 						border-radius: 8px;
 						box-shadow: -2px 2px 5px rgba(125,125,125,0.2);
 					}
-				}
 				.introduce{
 					margin-top: 10px;
 					font-size: 14px;
@@ -422,7 +420,7 @@
 					position: absolute;
 					overflow: hidden;
 					top: 16px;
-					z-index: 1;
+					z-index: 0;
 					border-radius: 8px 8px 0 0;
 					box-shadow:0 5px 30px gray inset;
 					-webkit-box-shadow:0 5px 30px gray inset;

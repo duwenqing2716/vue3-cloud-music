@@ -3,7 +3,7 @@
 		<van-row>
 			<van-col span="4">
 				<div class="icon">
-					<img src="../../assets/img/logo.47591c5c.png" alt="" @click="backHome">
+					<img src="~assets/img/logo.47591c5c.png" alt="" @click="backHome">
 				</div>
 			</van-col>
 			<van-col span="9" offset="2">
@@ -20,10 +20,10 @@
 	//vue功能引入
   import { ref,onMounted,watch } from 'vue'
 	//组件引入
-	import Search from '../../components/common/Search/Search.vue'
+	import Search from 'components/common/Search/Search.vue'
 	import NavRight from './navRight/NavRight.vue'
 	//获取本地存储引入
-	import { getItem } from '../../store/storage.js'
+	import { getItem } from 'store/storage.js'
   //由于setup中不存在this,因此在setup中使用路由必须先声明
   import { useRouter } from 'vue-router'
 	export default {

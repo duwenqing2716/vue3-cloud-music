@@ -4,7 +4,7 @@
 			<span class="change-modes" style="">
 				<span @click="backLogin"> &lt 返回登录</span>
 			</span>
-			<img src="../../../../assets/img/111.jpg" alt="">
+			<img src="~assets/img/111.jpg" alt="">
 		</div>
 		<van-form>
 		<van-cell-group inset class="input">
@@ -57,7 +57,7 @@
 	import { ref,reactive,getCurrentInstance,inject,onMounted } from 'vue'
 	
 	//接口引入
-	import { registPhone,sendSms } from '../../../../network/login.js'
+	import { registPhone,sendSms } from 'network/login.js'
 	
 	//组件库引入
 	import { Toast } from 'vant'

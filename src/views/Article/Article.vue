@@ -5,7 +5,7 @@
 </template>
 
 <script>
-	import updatedProfile from '../../components/content/updatedProfile.vue'
+	import updatedProfile from 'components/content/profile/updatedProfile.vue'
 	
 	export default{
 		name:'Article',
@@ -14,7 +14,6 @@
 		},
 		components:{
 			updatedProfile,
-			
 		},
 		setup(){
 			

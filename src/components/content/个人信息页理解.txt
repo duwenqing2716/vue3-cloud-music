@@ -240,9 +240,12 @@ path: '/user',
 
 
 例子2:params传参:
+设置可传可不传:
+path:'/search/:keyword?'
+
 router.push({name:'home',params: {id:'1'}})  // 只能用 name
 <router-link :to="{name:'home', params: {id:1}}"> 
-不配置path ,第一次可请求,刷新页面id会消失,最好配置
+不配置path ,第一次可请求,刷新页面id会消失,未指定占位:id
 配置path,刷新页面id会保留
 路由配置 path: "/home/:id" 或者 path: "/home:id" 
 
@@ -325,10 +328,10 @@ flex-direction: column;
 回复表情缺失(选做)
 消息弹出层(需要案例数据,暂时不做)
 发送私信页(选做)
-vue3页面缓存(keep-alive)
-组件分组封装
-我创建的歌单
-最近收听页面
+vue3页面缓存(keep-alive) 4
+组件分组封装 2
+最近收听页面 3
+mv详情页面 5
 个人信息页并未完全完善
 如:
 1.增加正则匹配实现报错功能,

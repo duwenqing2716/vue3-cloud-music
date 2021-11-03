@@ -42,45 +42,29 @@
 					</template>
 				</van-sidebar-item>
 			</div>
-			<div class='myMusic' >
-				<div @click="onCreateList">
-				<span class="myvList">我创建的歌单</span>
-				<i class="iconfont icon-sanjiao_xia" v-if="isShowIcon"></i>
-				<i class="iconfont icon-sanjiao_xia-copy" v-else></i>
-				</div>
-				<div class="myvAdd">
-				<i class="iconfont icon-tianjia"></i>
-				</div>
-			</div>
-			<div>
-			<van-sidebar-item v-show="isShowIcon" @click="reSongDetail(myfavorite[0].id)">
-			  <template #title>
-				  <i class="iconfont icon-xihuan1" style="font-weight: bold;"></i>
-					<span>我喜欢的音乐</span>
-					<button>
-						<i class="iconfont icon-xihuan" style="font-weight: bold;"></i>
-					</button>
-			  </template>
-			</van-sidebar-item>
-			</div>
-			<div class='myMusic' v-if="$store.getters.getLoginStatus">
-				<div @click="onPlayList">
-				<span class="myvList">我收藏的歌单</span>
-				<i class="iconfont icon-sanjiao_xia" v-if="isShowPlayList"></i>
-				<i class="iconfont icon-sanjiao_xia-copy" v-else></i>
-				</div>
-				<div class="myvAdd">
-				</div>
-			</div>
-			<div v-show="isShowPlayList" v-if="$store.getters.getLoginStatus">
-			<van-sidebar-item v-for="(item,index) in playlist" @click="reSongDetail(item.id)">
-			  <template #title>
-				  <i class="iconfont icon-gedan1"></i>
-					<span class="playlist">{{item.name}}</span>
-			  </template>
-			</van-sidebar-item>
-			</div>
+			<aside-list :listData='myfavorite' :self = 'true' :index = 'active' @onDelete='onDelete'>
+				<template v-slot:titles>
+					<span class="myvList">创建的歌单</span>
+				</template>
+				<template v-slot:add>
+					<div class="myvAdd" @click="onCreated" style="margin-right: 20px;cursor: pointer;">
+						<i class="iconfont icon-tianjia"></i>
+					</div>
+				</template>
+			</aside-list>
+			<aside-list :listData='playlist' :self = 'false' :index = 'active'  @onDelete='onDelete'>
+				<template v-slot:titles>
+					<span class="myvList">收藏的歌单</span>
+				</template>
+			</aside-list>
 		</van-sidebar>
+		
+		<van-dialog v-model:show="show" title="新建歌单" show-cancel-button style="width: 500px;" :overlayStyle='{backgroundColor:"transparent"}' @confirm='onConfirm' @cancel='onCancel' confirm-button-text='创建' :before-close='function(){return false}'>
+			<input type="text" v-model="title" placeholder="请输入新的歌单标题" style="width: 90%;height: 30px;border-radius: 8px;border: 1px solid darkgray;margin: 10px 0;padding-left: 5px;font-size: 14px;z-index: 3;">
+			<div style="text-align: left;font-size: 14px;margin-left: 15px;">
+				<input type="checkbox"  v-model="hidden">设置为隐私歌单
+			</div>
+		</van-dialog>
 	</div>
 </template>
 
@@ -90,11 +74,15 @@
 	//vue功能引入
 	import { ref,onMounted,watch,computed,nextTick } from 'vue';
 	//本地存储引入
-	import { getItem } from '../../store/storage.js'
+	import { getItem } from 'store/storage.js'
 	//接口引入
-	import { getUserPlaylist } from '../../network/profile.js'
+	import { getUserPlaylist } from 'network/profile.js'
+	import { createPlaylist,deletePlaylist } from 'network/songs.js'
 	//vuex功能引入
-	import{ useStore } from 'vuex'
+	import { useStore } from 'vuex'
+	//组件库引入
+	import { Toast,Dialog } from 'vant'
+	import AsideList from './childComps/AsideList.vue'
 	export default {
 		name:'Aside',
 		props:{
@@ -106,33 +94,85 @@
 				}
 			}
 		},
+		components:{
+			AsideList
+		},
 		setup(props,context){
 			const store = useStore();
 			const router = useRouter();
 			
+			const show = ref(false);
 			const active = ref(0);
 			const theme = ref(null);
 			const isShowIcon = ref(true);
 			const isShowPlayList = ref(true);
-			const playlist = ref({});
-			const myfavorite = ref({});
+			const playlist = ref([]);
+			const myfavorite = ref([]);
 			const uid = ref(null);
-			//是否显示自我创建的歌单 默认显示
-			const onCreateList = () => {
-				isShowIcon.value = !isShowIcon.value
+			const title = ref('');
+			const hidden = ref(null);
+			//确认
+			const onConfirm = async() => {
+				let res = null
+				if(!title.value) return Toast('歌单名为空')
+				if(hidden.value){
+					res = await createPlaylist(title.value,10)
+				}else{
+					res = await createPlaylist(title.value)
+				}
+        if(res.code == 200){
+        	onCancel()
+					myfavorite.value.push(res.playlist)
+        } 
 			}
-			//是否显示我收藏的歌单 默认显示
-			const onPlayList = () => {
-				isShowPlayList.value = !isShowPlayList.value
+			//取消
+			const onCancel = () => {
+				title.value = ''
+				hidden.value = false
+				show.value = false
+			}
+			//创建歌单弹出层
+			const onCreated = async() => {
+				show.value = true
 			}
 			//分开获取我喜欢的音乐和我收藏的歌单
 			const onGetUserPlayList = () => {
 				getUserPlaylist(uid.value,Date.now()).then(res=>{
-					if(res.code === 200){
-						myfavorite.value = res.playlist.filter((val,index)=>index==0)
-						playlist.value = res.playlist.filter((val,index)=>index>0)
+					if(res.code == 200){
+						playlist.value = res.playlist.filter(val => val.subscribed)
+						myfavorite.value = res.playlist.filter(val => !val.subscribed)
 					}
 				})
+			}
+			//
+			const onDelete = async({item,index}) => {
+				Toast.loading({
+					duration: 0, // 持续时间，0表示持续展示不停止
+					forbidClick: true, // 是否禁止背景点击
+					message: '加载中...' // 提示消息
+				})
+				const res = await deletePlaylist(item.id, Date.now())
+				if(res.code == 200){
+					if(item.subscribed){
+						playlist.value.splice(index,1)
+						if(playlist.value[index]){
+							reSongDetail(playlist.value[index].id)
+						}else{
+							reSongDetail(playlist.value[index*1-1].id)
+							active.value--
+						}
+					} else {
+						myfavorite.value.splice(index,1)
+						console.log(myfavorite.value[index])
+						if(myfavorite.value[index]){
+							reSongDetail(myfavorite.value[index].id)
+						}else{
+							reSongDetail(myfavorite.value[index*1-1].id)
+							active.value--
+						}
+					}
+				}
+				Toast.clear()
 			}
 			//歌单详情页面跳转
 			const reSongDetail = (id) => {
@@ -143,7 +183,6 @@
 							id
 						}
 					})
-
 			}
 			//{immediate:true}立即执行因此不需要onMounted挂载执行			
 			//监听登录状态,获取uid并获取自己收藏的歌单 (立即执行)
@@ -154,20 +193,21 @@
 					}
 			},{immediate:true})
 			
-			watch(playlist.value,(newValue,oldValue)=>{
-				console.log(newValue,'歌单')
-			})
-			
 			return { 
 				active,
-				onCreateList,
 				isShowIcon,
 				isShowPlayList,
-				onPlayList,
 				playlist,
 				myfavorite,
 				uid,
 				onGetUserPlayList,
+				show,
+				onCreated,
+				title,
+				hidden,
+				onConfirm,
+				onCancel,
+				onDelete,
 				reSongDetail
 			};
 		}
@@ -189,6 +229,17 @@
 			position: absolute;
 			left: 25px;
 			top: calc(50% - 10px);
+		}
+		.myMusic{
+			display: flex;
+			margin: 10px 0;
+			margin-left: 35px;
+			color: darkgray;
+			justify-content: space-between;
+			div{
+				display: inline-block;
+				cursor: pointer;
+			}
 		}
 		.common{
 			.van-sidebar-item--select{
@@ -228,33 +279,10 @@
 		.van-sidebar{
 			width: 100%;
 		}
-		.myMusic{
-			margin: 15px 0;
-			margin-left: 35px;
-			font-size: 14px;
-			color: gray;
-			display: flex;
-			.myvList{
-				margin-left: -30px;
-			}
-			.myvAdd{
-				i{
-					display: block;
-					position: absolute;
-					right: 30px;
-				}
-			}
-			div{
-				flex: 1;
-				span,i{
-					cursor: pointer;
-				}
-			}
-		}
+		
 		.van-badge__wrapper{
 			.icon-gedan1{
 				font-size: 22px;
-				position: absolute;
 				top: 3px;
 			}
 			.playlist{

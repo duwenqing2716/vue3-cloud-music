@@ -59,7 +59,7 @@
 	import {
 		setItem,
 		getItem
-	} from '../../../store/storage.js'
+	} from 'store/storage.js'
 	export default {
 		name: 'navRight',
 		components: {
