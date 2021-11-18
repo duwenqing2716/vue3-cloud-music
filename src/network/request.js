@@ -40,7 +40,7 @@ export function request(config) {
 		}else if(status == 403){//无权限操作
 			Toast.fail('权限不足,请联系管理员!')
 		}else if(status >= 500){//服务端异常
-			Toast.fail('服务端无资源异常')
+			Toast.fail('因合作方要求，暂时下架该资源')
 		}else{
 			if(message){
 				Toast.fail({message:message})

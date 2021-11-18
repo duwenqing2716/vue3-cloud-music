@@ -14,7 +14,7 @@
 					<div class="recomd-list">
 							<span class="recomdInfo">推荐歌单</span>
 							<van-grid :column-num="5" :border='false'>
-								<van-grid-item @click='onSongsDetails'>
+								<van-grid-item @click='recentListen'>
 									<img class="change-img" src="~assets/img/排行.png" >
 									<div class="icon-xs">
 										<div class="change-list">
@@ -45,7 +45,7 @@
 					<div class="recomd-list">
 						<span class="recomdInfo" style="width: 1080px;">{{personal.name}}</span>
 						<van-grid :column-num="3" :border='false' style="width: 1080px;">
-							<van-grid-item v-for="(item,index) in personal.result" :key="item.id" style="cursor: pointer;"> 
+							<van-grid-item v-for="(item,index) in personal.result" :key="item.id" style="cursor: pointer;" @click='comeToMv(item.id)'> 
 							  <i class="iconfont icon-bofang" style="position: absolute;top: 20px;left: 15px"></i>
 							  <img v-lazyload="item.picUrl + '?param=340y117'" />
 								<span class="introduce">{{item.name}}</span>
@@ -142,6 +142,18 @@
 			const onSongsDetails = (id) => {
 				router.push({path:'/home/songDetail',query:{id}})
 			}
+			//
+			const comeToMv = (id) => {
+				router.push({path:'/video',query:{id:id}})
+			}
+			//
+			const recentListen = () => {
+				if (store.state.isLogin) {
+				  router.push({path:'/home/recommendList'})
+				}else{
+					Toast('该功能必须登录后才能使用！')
+				}
+			}
 			//挂载时 此处功能最好用async await配合使用
 			onMounted(async() => {
 				Toast.loading({
@@ -195,7 +207,9 @@
 				NewSongs,
 				recomdMv,
 				day,
-				onSongsDetails
+				onSongsDetails,
+				recentListen,
+				comeToMv
 			}
 		}
 	}
@@ -499,6 +513,13 @@
 						.list-text{
 							margin-left: 10px;
 							margin-top: 10px;
+							span{
+								overflow: hidden;
+								text-overflow: ellipsis;
+								display: -webkit-box;
+								-webkit-line-clamp: 1;
+								-webkit-box-orient: vertical;
+							}
 							p{
 								font-size: 14px;
 								color: dimgray;

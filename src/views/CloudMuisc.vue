@@ -2,7 +2,7 @@
 	<div>
 		<Header @onThemeChange='onThemeChange'></Header>
 		<Aside :theme='state.theme'></Aside>
-		<router-view :key="$route.path"/>
+		<router-view :key="$route.query"/>
 	</div>
 </template>
 

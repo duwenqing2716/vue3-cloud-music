@@ -25,11 +25,11 @@ app.directive('lazyload',{
 	}
 })
 
-// app.directive('ban',{
-// 	mounted(el,bindinds){		
+app.directive('permission',{
+	mounted(el,bindinds){		
 		
-// 	}
-// })
+	}
+})
 
 app.config.globalProperties.$bus = new mitt()
 app.provide('emitter', emitter);  

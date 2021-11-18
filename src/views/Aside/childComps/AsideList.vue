@@ -11,7 +11,7 @@
 		<div v-show="isShowIcon">
 			<van-sidebar-item v-for="(item,index) in listData" @click="reSongDetail(item.id)" @contextmenu.prevent="onDelete(item,index)">
 				<template #title>
-					<div style="display: flex;text-align: left;align-items: center;margin-top: -5px;">
+					<div style="display: flex;text-align: left;align-items: center;margin-top: -5px;height: 30px;">
 						<i class="iconfont icon-xihuan1" style="font-weight: bold;" v-if="index == 0 && self"></i>
 						<i class="iconfont icon-suoding" style="font-weight: bold;" v-else-if="item.privacy == 10"></i>
 						<i class="iconfont icon-gedan1" style="font-weight: bold;" v-else></i>
