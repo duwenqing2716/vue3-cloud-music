@@ -55,15 +55,19 @@
 
 			<div class="user-subscribers-list-third" v-show="modes==2">
 				<div class="user-subscribers-most" v-if="( $route.query.id == $store.state.uid || peopleCanSee )&& modify == 'ModesChange1'">
-					<div class="user-subscribers-left">
+					<div class="user-subscribers-left" @click="recentListen">
 						<img src="~assets/img/排行.png" alt="">
 					</div>
 					<div class="user-subscribers-right">
-						<div class="user-subscribers-top">
+						<div class="user-subscribers-top" @click="recentListen">
 							<span>听歌排行</span>
 						</div>
 						<div class="user-subscribers-bottom">
 							<rencent-list :recentSongs='recentSongs' :isCompareShow='isCompareShow' @onLike='onLike' style="width: 890px;"></rencent-list>
+							<div style="width: 890px;height: 30px;background-color: #F9F9F9;text-align: right;font-size: 14px;line-height: 30px;color: darkgray;border-radius: 4px;display: inline-block;cursor: pointer;"
+							 v-if="recentSongs.nums>10" @click="recentListen">
+								<span style='margin-right: 48px;'>查看全部{{recentSongs.nums}}首歌 ></span>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -85,6 +89,10 @@
 									</template>
 								</rencent-list>
 							</template>
+							<div style="width: 890px;height: 30px;background-color: #F9F9F9;text-align: right;font-size: 14px;line-height: 30px;color: darkgray;border-radius: 4px;display: inline-block;cursor: pointer;"
+							 v-if="selfSongs[item.id].nums>10" @click="reSongDetail(item.id)">
+								<span style='margin-right: 48px;'>查看全部{{selfSongs[item.id].nums}}首歌 ></span>
+							</div>
 							<div class="user-subscribers-bottom-list differ" v-else>
 								<span style='display: inline-block;margin: 0 auto;'>暂无音乐</span>
 							</div>
@@ -276,6 +284,10 @@
 					recentSongs.value.nums = res.allData.length
 				}
 			}
+			//跳转最近用户听的歌曲页面
+			const recentListen = () => {
+				router.push({path:'/home/rank',query:{id:route.query.id}})
+			}
 			//判断登录状态 获取用户喜欢的歌曲列表(立即执行)
 			watch(() => store.state.isLogin, (newValue, oldValue) => {
 				if (store.state.isLogin) {
@@ -358,7 +370,8 @@
 				currentPage,
 				totalItems,
 				changePage,
-				subscriber
+				subscriber,
+				recentListen
 			}
 		}
 	}

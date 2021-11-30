@@ -339,3 +339,53 @@ mv详情页面 5
 3.判断页面是否改动而进行提交按钮@click的渲染,
 4.取消按钮也是如此
 5.自定义下拉框样式设置
+
+vue关于深浅拷贝的思考:
+vue props传递值为基本数据类型时
+最好在子组件中computed进行接收或者开辟新内存进行存储
+vue props传递值为复杂类型数据时
+以上方法失效,不能进行深拷贝,会影响数据流动问题,vue为单向数据流,子组件更改父组件数据可能会导致数据流动混乱
+因此需要谨慎使用,最好深拷贝进行复制操作
+
+针对数组的方法:
+Array.slice()
+Array.concat()
+当然，也可以遍历数组赋值。
+局限性:
+但是以上两种只对单级结构(一维数组)的数组有效，如果数组的元素是一个引用类型(二维以上)，就不行了，比如：数组中
+嵌套数组或者对象,多层次
+
+针对对象的方法:
+Object.assign()
+局限性:
+大于二维同样失效
+
+真正实现浅拷贝方式:
+1.判断递归
+function deepClone(obj){
+    let objClone = Array.isArray(obj)?[]:{};
+    if(obj && typeof obj==="object"){
+        for(key in obj){
+            if(obj.hasOwnProperty(key)){
+                //判断ojb子元素是否为对象，如果是，递归复制
+                if(obj[key]&&typeof obj[key] ==="object"){
+                    objClone[key] = deepClone(obj[key]);
+                }else{
+                    //如果不是，简单复制
+                    objClone[key] = obj[key];
+                }
+            }
+        }
+    }
+    return objClone;
+} 
+
+2.jquery中的$.extend();
+由于jq使用较少不做深究
+
+3、JSON对象的JSON.parse()和JSON.stringify();编码并解码
+watch,computed监听数据传输过来后进行该操作
+var obj = {name:'xixi',age:20,company : { name : '腾讯', address : '深圳'} };
+var obj_json = JSON.parse(JSON.stringify(obj));
+
+拷贝后修改新数据的属性并不会触发vue的更新机制，需要强制更新$forceUpdate()

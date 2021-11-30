@@ -97,16 +97,10 @@ export const newComment = (id,type,pageNo,pageSize,sortType,timerstamp) => {
 	})
 }
 //传入 type, 资源 id, 和评论 id cid 和 是否点赞参数 t 即可给对 应评论点赞 ( 需要登录 )
-export const likeComment = (id,cid,t,type,timerstamp) => {
+export const likeComment = params => {
 	return request({
 		url:'/comment/like',
-		params:{
-			id,
-			cid,
-			t,
-			type,
-			timerstamp
-		}
+		params
 	})
 }
 //可发送评论或者删除评论 t:1 发送, 2 回复

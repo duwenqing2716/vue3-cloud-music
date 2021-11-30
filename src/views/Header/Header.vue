@@ -88,7 +88,9 @@
 			img {
 				margin-top: 5px;
 				margin-left: 20px;
+				position: relative;
 				width: 70%;
+				z-index: 2;
 				cursor: pointer;
 			}
 		}

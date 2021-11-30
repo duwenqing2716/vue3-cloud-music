@@ -1,17 +1,17 @@
 <template>
 	<div class="subscribe">
-		<div class="photos" v-for="(item,index) in isShowNew" :key='item.userId' @click="onUserProfile(item)">
-			<div>
-				<img v-lazyload="item.avatarUrl + '?param=80y80'" alt="">
+		<div class="photos" v-for="(item,index) in isShowNew" :key='item.userId'>
+			<div style="margin-left: 15px;position: relative;" @click="onUserProfile(item)">
+				<img v-lazyload="item.avatarUrl + '?param=150y150'" alt="">
+				<template v-if="item.avatarDetail">
+					<img v-lazyload="item.avatarDetail.identityIconUrl + '?param=30y30'" alt="" style="width: 28px;height: 28px;position: absolute;bottom: 5px;right: 2px;">
+				</template>
 			</div>
-			<div>
-				<span>{{item.nickname}}</span>
-				<i class="iconfont icon-nanxing" style="background-color:#C0F3FF;color: #57B1DB;" v-if="item.gender == 1"></i>
-				<i class="iconfont icon-nvxing" style="background-color:#FFCDE8;color: #EF77AA;" v-else-if="item.gender == 2"></i>
-			  <p>{{item.signature}}</p>
+			<div style="margin-left: 15px;text-align: left;">
+				<slot name="contnet" :item='item'></slot>
 			</div>
 		</div>
-		<div class="pages">
+		<div class="pages" v-if="totalItem>1">
 			<van-pagination v-model="currentPage" :show-page-size="totalItem>6?6:totalItem" force-ellipses :page-count='totalItem' @change='changePage'
 			/>
 		</div>
@@ -20,9 +20,14 @@
 
 <script>
 	//vue功能引入
-	import { ref,onMounted } from 'vue'
+	import { ref,onMounted,onUpdated,watchEffect } from 'vue'
 	//接口引入
 	import { allSubscribe } from 'network/songs.js'
+	//接口引入
+	import {
+		getUserFollows,
+		getUserFolloweds
+	} from 'network/profile.js'
 	//由于setup中不存在this,因此在setup中使用路由必须先声明
 	import { useRouter } from 'vue-router'
 	export default {
@@ -41,6 +46,13 @@
 				default(){
 					return null
 				}
+			},
+			type:{
+				type:Number,
+				required:true,
+				default(){
+					return 0
+				}
 			}
 		},
 		setup(props,context){
@@ -48,7 +60,7 @@
 			
 			const subscribersList = ref([]);
 			const isShowNew = ref([]);
-			const totalItem = ref(Math.ceil(props.allSubscribers.total/60))
+			const totalItem = ref(0)
 			const currentPage = ref(1);
       //点击其他页面时
 			const changePage = async() => {
@@ -60,9 +72,17 @@
 					isShowNew.value = isSome.list
 				}else{
 					//发送新请求
-					const res = await allSubscribe(props.listId,60,currentPage.value*60)
-					console.log(res)
-					getPush(res.subscribers)
+					let res
+					if(props.type == 0){
+						res = await allSubscribe(props.listId,60,currentPage.value*60)
+						getPush(res.subscribers)
+					}else if(props.type == 1){
+						const data = await getUserFollows({uid:props.listId,limit:60,offset:(currentPage.value-1)*60,timerstamp: Date.now()})
+						getPush(data.follow)
+					}else if(props.type == 2){
+						const data = await getUserFolloweds({uid:props.listId,limit:60,offset:(currentPage.value-1)*60,timerstamp: Date.now()})
+						getPush(data.followeds)
+					}
 				}	
 			}
 			//封装添加数据操作
@@ -70,18 +90,20 @@
 				let listDetail = {}
 				listDetail.list = val
 				listDetail.page = currentPage.value
-				subscribersList.value.push(listDetail) 
+				subscribersList.value.push(listDetail)
 				isShowNew.value = val
+				
 			}
 			//路由跳转个人详情页
 			const onUserProfile = (item) => {
 				router.push({path:'/home/userDetail',query:{id:item.userId}})
 			}
-			//挂载时
-			onMounted(()=>{
-				getPush(props.allSubscribers.subscribers)
-			})
 			
+			watchEffect(()=>{
+			  getPush(props.allSubscribers)
+				totalItem.value = Math.ceil(props.allSubscribers.total/60)
+			})
+
 			return{
 				subscribersList,
 				currentPage,
@@ -96,7 +118,7 @@
 
 <style scoped lang="less">
   .subscribe{
-		margin-left: 40px;
+		margin-left: 20px;
 		margin-top: 40px;
 		display: flex;
 		flex-wrap: wrap;
@@ -105,43 +127,15 @@
 			align-items: center;
 			width: 33%;
 			margin-bottom: 40px;
-			div:nth-child(2){
-				margin-left: 20px;
-				text-align: left;
-			}
+			
 			img{
-				width: 80px;
-				height: 80px;
+				width: 100px;
+				height: 100px;
 				border-radius: 50%;
 				cursor:pointer
-			}
-			span{
-				font-size: 17px;
-				opacity: 0.8;
-				cursor:pointer;
-				vertical-align: middle;
-				&:hover{
-					opacity: 1;
-				}
-			}
-			i{
-				display: inline-block;
-				width: 20px;
-				height: 20px;
-				border-radius: 50%;
-				font-size: 12px;
-				line-height: 20px;
-				margin-left:10px;
-				text-align: center;
-			}
-			p{
-				font-size: 13px;
-				text-align: left;
-				overflow: hidden;
-				text-overflow: ellipsis;
-				display: -webkit-box;
-				-webkit-line-clamp: 2;
-				-webkit-box-orient: vertical;
+			}	
+			&:hover{
+				background-color: rgba(125,125,125,0.2);
 			}
 		}
 		.pages{

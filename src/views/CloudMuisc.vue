@@ -14,9 +14,6 @@
 	import { ref,reactive } from 'vue'
 	export default{
 		name:'CloudMuisc',
-		props:{
-			
-		},
 		components:{
 			Header,
 			Aside
@@ -27,7 +24,6 @@
 			})
 			const onThemeChange = (color) => {
 				state.theme = color
-				// console.log(state.theme,typeof state.theme,color)
 			}
 			return {
 				state,

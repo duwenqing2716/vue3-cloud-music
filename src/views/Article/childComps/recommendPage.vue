@@ -75,7 +75,7 @@
 						<span class="recomdInfo">推荐MV</span>
 						<van-grid :column-num="3" :border='false'>
 							<van-grid-item class="mv-list" v-for="(item,index) in recomdMv" :key="item.id"> 
-								<div class="mv-show">
+								<div class="mv-show" @click='comeToMv(item.id)'>
 									<div class="mv-show-top">
 										<span>最新热门MV推荐</span>
 									</div>
@@ -144,7 +144,7 @@
 			}
 			//
 			const comeToMv = (id) => {
-				router.push({path:'/video',query:{id:id}})
+				router.push({path:'/mv',query:{id:id}})
 			}
 			//
 			const recentListen = () => {

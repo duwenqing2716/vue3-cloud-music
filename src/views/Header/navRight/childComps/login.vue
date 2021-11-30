@@ -1,7 +1,7 @@
 <template>
 	<div class="login">
 		<div v-if="$store.getters.getLoginStatus">
-			<router-link :to="{ path: '/home/userDetail', query: { id: $store.state.uid }}">
+			<router-link :to="{ path: '/home/userDetail', query: { id: $store.getters.getUserId }}">
 				<img :src="$store.getters.getAvatar" alt="" id="login">
 			</router-link>
 		</div>

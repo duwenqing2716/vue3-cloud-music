@@ -74,6 +74,7 @@
 					})
 				})
 			})
+			
 			return {
 				subscribed,
 				day,

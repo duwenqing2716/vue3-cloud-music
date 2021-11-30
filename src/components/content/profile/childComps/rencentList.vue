@@ -1,6 +1,6 @@
 <template>
 	<div class="recent" style="width: 100%;">
-		<div class="user-subscribers-bottom-list" v-for="(item,index) in recentSongs" :key='item.id' :class="index%2?'differ':''">
+		<div class="user-subscribers-bottom-list" v-for="(item,index) in recentSongs" :key='item.id' :class="index%2?'':'differ'">
 			<span>{{index+1<10?'0'+(index+1):index+1}}</span>
 			<i class="iconfont icon-xihuan2" style="color: #EC4141;" v-if="isCompareShow[item.id]" @click='onLike(item)'></i>
 			<i class="iconfont icon-xihuan1" v-else @click='onLike(item)'></i>
@@ -10,10 +10,6 @@
 			<span class="SQorMv">MV</span>
 			<slot :time='item.dt' name="time"></slot>
 			<slot :count='item.num'  name="count"></slot>
-		</div>
-		<div style="width: 890px;height: 30px;background-color: #F9F9F9;text-align: right;font-size: 14px;line-height: 30px;color: darkgray;border-radius: 4px;display: inline-block;cursor: pointer;"
-		 v-if="recentSongs.nums>10">
-			<span style='margin-right: 48px;'>查看全部{{recentSongs.nums}}首歌 ></span>
 		</div>
 	</div>
 </template>

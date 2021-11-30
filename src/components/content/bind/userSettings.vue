@@ -2,16 +2,16 @@
 	<div>
 		<div class="signIn">
 			<div class="signIn-nav">
-				<div>
+				<div @click="onReProfile('events')">
 					<p>{{state.events || 0}}</p>
 					<span>动态</span>
 				</div>
-				<div>
-					<p>{{state.follow.length || 0}}</p>
+				<div @click="onReProfile('followed')">
+					<p>{{state.follow || 0}}</p>
 					<span>关注</span>
 				</div>
-				<div>
-					<p>{{state.fans.length || 0}}</p>
+				<div @click="onReProfile('fans')">
+					<p>{{state.fans || 0}}</p>
 					<span>粉丝</span>
 				</div>
 			</div>
@@ -76,8 +76,8 @@
 	//vue相关功能引入
 	import { ref,reactive,inject,onMounted,computed } from 'vue'
 	//接口引入
-	import { getUserEvents,getUserFollows,getUserFolloweds,userLogout,getUserSignin } from 'network/profile.js'
-	import { getUserLevel } from 'network/useDetail.js'
+	import { userLogout,getUserSignin } from 'network/profile.js'
+	import { getUserLevel,getUserDetail } from 'network/useDetail.js'
 	//本地存储移除功能引入
 	import { removeItem } from 'store/storage.js'
 	//由于setup中不存在this,因此在setup中使用路由必须先声明
@@ -94,9 +94,9 @@
 			const signStatus = ref(false)
 			
 			const state = reactive({
-				follow:{},
-				events:null,
-				fans:{}
+				follow:0,
+				events:0,
+				fans:0
 			})
 			//退出登录
 			const logout = async() => {
@@ -128,6 +128,10 @@
 					})
 				}
 			}
+			//
+			const onReProfile = (val) => {
+				router.push({path:'/user/'+val,query:{id:uid.value}})
+			}
 			//路由跳转用户设置页面
 			const userSet = () => {
 				router.push({path:'/home/profile'})
@@ -141,14 +145,12 @@
 			//挂载时获取用户信息
 			onMounted(async()=>{
 				uid.value = store.getters.getUserId
-				let levels = await getUserLevel()
-				level.value = levels.data.level
-				const res = await getUserEvents({uid:uid.value,timestamp:Date.now()})
-				state.events = res.size
-				const data = await getUserFollows({uid:uid.value,timestamp:Date.now()}) 
-				state.follow = data.follow
-				const val = await getUserFolloweds({uid:uid.value,timestamp:Date.now()}) 
-				state.fans = val.followeds
+				
+				const resData = await getUserDetail(uid.value, Date.now())
+				level.value = resData.level
+				state.events = resData.profile.eventCount
+				state.follow = resData.profile.follows
+				state.fans = resData.profile.followeds
 			})
 			
 			return{
@@ -158,7 +160,8 @@
 				userBind,
 				level,
 				onSign,
-				signStatus
+				signStatus,
+				onReProfile
 			}
 		}
 	}

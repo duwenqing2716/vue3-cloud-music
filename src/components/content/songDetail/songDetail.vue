@@ -65,23 +65,32 @@
 				</div>
 			</div>
 		</div>
-		<div class="row-songs-list" v-show="currentIndex==1" v-if="listSongs.length!=0">
-			<template v-if="search === ''">
-				<song-lists :isCompare='isCompare' :listSongs='listSongs' :songsDetails='songsDetails'></song-lists>
-			</template>
-			<template v-else-if="searchLists.length!=0">
-				<song-lists :isCompare='isCompare' :listSongs='searchLists' :songsDetails='songsDetails'></song-lists>
-			</template>
-			<div v-else-if="search !='' && searchLists.length === 0">
-				<span style="margin-top: 40px;display: block;" v-show="text!=''">未能找到与‘{{text}}’相关的任何音乐</span>
+		<div class="row-songs-list" v-show="currentIndex==1">
+			<div v-if="listSongs.length!=0">
+				<template v-if="search === ''">
+					<song-lists :isCompare='isCompare' :listSongs='listSongs' :songsDetails='songsDetails'></song-lists>
+				</template>
+				<template v-else-if="searchLists.length!=0">
+					<song-lists :isCompare='isCompare' :listSongs='searchLists' :songsDetails='songsDetails'></song-lists>
+				</template>
+				<div v-else-if="search !='' && searchLists.length === 0">
+					<span style="margin-top: 40px;display: block;" v-show="text!=''">未能找到与‘{{text}}’相关的任何音乐</span>
+				</div>
 			</div>
-		</div>
-		<div style="margin-top: 100px;color: lightgray;" v-else>暂无音乐</div>
+			<div style="margin-top: 100px;color: lightgray;" v-else>暂无音乐</div>
+		</div>	
 		<div class="comment-list" v-if="currentIndex==2" style='width: 90%;margin-left: 25px;margin-top: 40px;'>
-			<comment-lists :listId='id' @changeNum='changeNum'></comment-lists>
+			<comment-lists :listId='id' @changeNum='changeNum' :listType='2'></comment-lists>
 		</div>
 		<div class="subscribed-list" v-if="currentIndex==3">
-			<subscribers :allSubscribers='allSubscribers' :listId='id'></subscribers>
+			<subscribers :allSubscribers='allSubscribers' :listId='id' :type='0'>
+				<template v-slot:contnet='{item}'>
+					<span>{{item.nickname}}</span>
+					<i class="iconfont icon-nanxing" style="color: #57B1DB;" v-if="item.gender == 1"></i>
+					<i class="iconfont icon-nvxing" style="color: #EF77AA;" v-else-if="item.gender == 2"></i>
+					<p>{{item.signature}}</p>
+				</template>
+			</subscribers>
 		</div>
 	</div>
 </template>
@@ -125,7 +134,7 @@
 		Dialog
 	} from 'vant'
 	//组件引入
-	import commentLists from './childComps/commentLists.vue'
+	import commentLists from 'components/common/Comment/commentLists.vue'
 	import subscribers from './childComps/subscribers.vue'
 	import songLists from './childComps/songLists.vue'
 	export default {
@@ -135,7 +144,7 @@
 				type: String,
 				required: true,
 				default () {
-					return ''
+					return null
 				}
 			}
 		},
@@ -293,6 +302,11 @@
 					forbidClick: true, // 是否禁止背景点击
 					message: '加载中...' // 提示消息
 				})
+				//收藏页数据预先请求
+				const data = await allSubscribe(props.id, 60, 0)
+				allSubscribers.value = data.subscribers
+				allSubscribers.value.total= data.total
+				// console.log(data)
 				//async不加await 将出现promise类型 获取歌单页面详细数据
 				const res = await detailInfo(props.id, Date.now())
 				songsDetails.value = res.playlist
@@ -327,9 +341,6 @@
 						Toast.clear()
 					})
 				}
-				//收藏页数据预先请求
-				const data = await allSubscribe(props.id, 60, 0)
-				allSubscribers.value = data
 			}, {
 				immediate: true
 			})
@@ -639,6 +650,43 @@
 				}
 			}
 		}
+
+		.subscribed-list {
+			span {
+				font-size: 17px;
+				font-weight: bold;
+				opacity: 0.8;
+				cursor: pointer;
+				vertical-align: middle;
+
+				&:hover {
+					opacity: 1;
+				}
+			}
+
+			i {
+				display: inline-block;
+				width: 20px;
+				height: 20px;
+				font-weight: bold;
+				border-radius: 50%;
+				font-size: 15px;
+				line-height: 20px;
+				margin-left: 10px;
+				text-align: center;
+			}
+
+			p {
+				font-size: 13px;
+				text-align: left;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+			}
+		}
+
 
 		.row-songs-list-nav {
 			text-align: left;

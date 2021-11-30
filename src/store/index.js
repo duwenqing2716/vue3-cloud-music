@@ -10,7 +10,8 @@ export default createStore({
 		nickname: '',
 		uid: null,
 		cookie: null,
-		isLogin:false
+		isLogin:false,
+		follows:{}
   },
   mutations: {
 		//搜索历史存储
@@ -29,8 +30,7 @@ export default createStore({
 		changeLoginStatus(state,payload){
 			state.isLogin = payload
 			setItem('cloudMusicStatus',payload)
-			
-		},
+		}
   },
   getters: {
 		//获取vuex中的cookie

@@ -165,9 +165,10 @@
 			}
 			i {
 				font-size: 25px;
+				position: relative;
+				z-index: 2;
 				cursor: pointer;
 			}
-			
 		}
 	.cover{
 		position: absolute;

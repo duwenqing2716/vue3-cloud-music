@@ -41,7 +41,7 @@
 		useStore
 	} from 'vuex'
 	import { ref,onMounted } from 'vue';
-	import rencentList from '../../profile/childComps/rencentList.vue'
+	import rencentList from 'components/content/profile/childComps/rencentList.vue'
 	//接口引入
 	import {
 		likeSongsList,

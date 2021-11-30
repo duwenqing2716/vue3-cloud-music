@@ -1,11 +1,20 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-import Home from 'views/CloudMuisc.vue'
-// import Article from 'views/Article/Article.vue'
-// import userBinding from 'components/content/bind/userBinding.vue'
-// import recommendPage from 'views/Article/childComps/recommendPage.vue'
-// import songDetail from 'components/content/songDetail/songDetail.vue'
-// import userDetail from 'components/content/profile/userDetail.vue'
+const Home = () => import(/* webpackChunkName:'home'*/'views/CloudMuisc.vue')
+const recommendPage = () => import(/* webpackChunkName:'recommendPage'*/'views/Article/childComps/recommendPage.vue')
+const recommendList = () => import(/* webpackChunkName:'recommendList'*/'components/content/songDetail/childComps/recommendList.vue')
+const recentList = () => import(/* webpackChunkName:'recentList'*/'components/content/songDetail/childComps/recentList.vue')
+const Article = () => import(/* webpackChunkName:'Article'*/'views/Article/Article.vue')
+const userBinding = () => import(/* webpackChunkName:'userBinding'*/'components/content/bind/userBinding.vue')	
+const songDetail = () => import(/* webpackChunkName:'songDetail'*/'components/content/songDetail/songDetail.vue')
+const userDetail = () => import(/* webpackChunkName:'userDetail'*/'components/content/profile/userDetail.vue')
+// const events = () => import(/* webpackChunkName:'events'*/'components/content/profile/childComps/events.vue')
+const followed = () => import(/* webpackChunkName:'followed'*/'components/content/profile/childComps/followList.vue')
+
+// const mvDetailInfo = () => import(/* webpackChunkName:'mv'*/'components/content/video/mvDetailInfo.vue')
+const video = () => import(/* webpackChunkName:'video'*/'components/content/video/mvDetailInfo.vue')
+const eventsList = () => import(/* webpackChunkName:'eventsList'*/'components/content/events/eventsList.vue')
+
 
 const routes = [
   {
@@ -20,37 +29,58 @@ const routes = [
 		children: [
 			  {
 					path: '/home/recommend',
-					component:() => import(/* webpackChunkName:'recommendPage'*/'views/Article/childComps/recommendPage.vue')
+					component:recommendPage
 				},
 				{
 					path: '/home/recommendList',
-					component:() => import(/* webpackChunkName:'recommendList'*/'components/content/songDetail/childComps/recommendList.vue')
+					component:recommendList
 				},
 				{
 					path: '/home/rank',
-					component:() => import(/* webpackChunkName:'recentList'*/'components/content/songDetail/childComps/recentList.vue'),
+					component:recentList,
 				  props: route => ({
             id: route.query.id
           })
 				},
 				{
 					path: '/home/profile',
-					component:() => import(/* webpackChunkName:'Article'*/'views/Article/Article.vue')
+					component:Article
 				},
 				{
 					path: '/home/binding',
-					component:() => import(/* webpackChunkName:'userBinding'*/'components/content/bind/userBinding.vue')	
+					component:userBinding
 				},
 				{
 					path: '/home/songDetail',
-					component:() => import(/* webpackChunkName:'songDetail'*/'components/content/songDetail/songDetail.vue'),
+					component:songDetail,
 					props: route => ({
             id: route.query.id
           })
 				},
 				{
 					path: '/home/userDetail',
-					component:() => import(/* webpackChunkName:'userDetail'*/'components/content/profile/userDetail.vue'),
+					component:userDetail,
+					props: route => ({
+				    id: route.query.id
+				  })
+				},
+				{
+					path: '/user/events',
+					component:eventsList,
+					props: route => ({
+				    id: route.query.id
+				  })
+				},
+				{
+					path: '/user/followed',
+					component:followed,
+					props: route => ({
+				    id: route.query.id
+				  })
+				},
+				{
+					path: '/user/fans',
+					component:followed,
 					props: route => ({
 				    id: route.query.id
 				  })
@@ -58,9 +88,17 @@ const routes = [
 	  ]
 	},
 	{
+		path:'/mv',
+		name: 'mv',
+		component:video,
+		props: route => ({
+		  id: route.query.id
+		})
+	},
+	{
 		path:'/video',
 		name: 'video',
-		component:() => import(/* webpackChunkName:'video'*/'components/content/video/video.vue'),
+		component:video,
 		props: route => ({
 		  id: route.query.id
 		})
